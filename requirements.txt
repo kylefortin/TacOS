@@ -1,0 +1,8 @@
+confapp
+numpy
+opencv-python
+setuptools
+smbus2
+PyForms
+PyForms_GUI
+AnyQt
