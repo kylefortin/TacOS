@@ -20,14 +20,14 @@ Current version is `1.0.1`
 4. Navigate to the folder that you just downloaded the files to.
 5. Extract the SIP tar.gz file `tar -xzvf <sip>.tar.gz`.
 6. Navigate to the new SIP directory `cd /<sip>`.
-7. Configure SIP for build `python3 config.py --sip-module=PyQt5.sip`.
+7. Configure SIP for build `python3 configure.py --sip-module=PyQt5.sip`.
 8. Create makefile for installation `make`.
 9. Install makefile using `sudo make install`.
 #### Building/Installing PyQt5
 1. Download PyQt5 from https://www.riverbankcomputing.com/software/pyqt/download5.
 2. Extract the PyQt5 tar.gz file `tar -xzvf <pyqt5>.tar.gz`.
 3. Navigate to the new PyQt5 directory `cd /<pyqt5>`.
-4. Configure PyQt5 for build using `python3 config.py`.
+4. Configure PyQt5 for build using `python3 configure.py`.
 5. Create makefile for installation `make`.
 6. Install makefile `sudo make install`.
 #### Building/Installing QScintilla
