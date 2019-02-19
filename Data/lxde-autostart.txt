@@ -1,2 +1,2 @@
-@pcmanfm --dekstop --profile LXDE-pi
+@pcmanfm --desktop --profile LXDE-pi
 /home/pi/TacOS/launcher.sh
