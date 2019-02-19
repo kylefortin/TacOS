@@ -27,9 +27,10 @@ Current version is `1.0.1`
 1. Download PyQt5 from https://www.riverbankcomputing.com/software/pyqt/download5.
 2. Extract the PyQt5 tar.gz file `tar -xzvf <pyqt5>.tar.gz`.
 3. Navigate to the new PyQt5 directory `cd /<pyqt5>`.
-4. Configure PyQt5 for build using `python3 configure.py`.
-5. Create makefile for installation `make`.
-6. Install makefile `sudo make install`.
+4. Install the QTCore package `sudo apt-get install qt5-default`.
+5. Configure PyQt5 for build using `python3 configure.py`.
+6. Create makefile for installation `make`.
+7. Install makefile `sudo make install`.
 #### Building/Installing QScintilla
 1. Download QScintilla from https://www.riverbankcomputing.com/software/qscintilla/download.
 2. Extract the QScintilla tar.gz file using `tar -xzvf <qscintilla>.tar.gz`.
@@ -38,7 +39,7 @@ Current version is `1.0.1`
 5. Build the makefile `make`.
 6. Install the makefile `sudo make install`.
 7. Navigate to the Python subdirectory `cd /<qscintilla>/Python`.
-8. Configure the Python binding for build using `python3 configure.py`.
+8. Configure the Python binding for build using `python3 configure.py --pyqt=PyQt5`.
 9. Build the makefile using `make`.
 10. Install the makefile using `sudo make install`.
 ### Installing Dependent Packages
