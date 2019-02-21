@@ -13,6 +13,8 @@ Current version is `1.0.1`
 
 ## Installation
 ### Building Dependent Frameworks
+#### Installing QT5 Core Tools
+1. Install QT5 Core Tools from APT `sudo apt-get install qt5-default`
 #### Building/Installing SIP
 1. Start from a fresh install of Raspbian Stretch.
 2. Download SIP from https://www.riverbankcomputing.com/software/sip/download.
@@ -27,10 +29,9 @@ Current version is `1.0.1`
 1. Download PyQt5 from https://www.riverbankcomputing.com/software/pyqt/download5.
 2. Extract the PyQt5 tar.gz file `tar -xzvf <pyqt5>.tar.gz`.
 3. Navigate to the new PyQt5 directory `cd /<pyqt5>`.
-4. Install the QTCore package `sudo apt-get install qt5-default`.
-5. Configure PyQt5 for build using `python3 configure.py`.
-6. Create makefile for installation `make`.
-7. Install makefile `sudo make install`.
+4. Configure PyQt5 for build using `python3 configure.py`.
+5. Create makefile for installation `make`.
+6. Install makefile `sudo make install`.
 #### Building/Installing QScintilla
 1. Download QScintilla from https://www.riverbankcomputing.com/software/qscintilla/download.
 2. Extract the QScintilla tar.gz file using `tar -xzvf <qscintilla>.tar.gz`.
@@ -45,6 +46,8 @@ Current version is `1.0.1`
 ### Installing Dependent Packages
 1. Navigate to the TacOS directory `cd /home/pi/TacOS`.
 2. Install the requirements `pip3 install -r requirements.txt`.
+### Installing ATLAS
+1. Install the ATLAS package from APT `sudo apt-get install libatlas-base-dev`
 ### Configure Pi for Automatic Startup to TacOS
 1. Navigate to the TacOS directory `cd /home/pi/TacOS`.
 2. Run the Pi setup script `sh setup-rpi.sh`.
