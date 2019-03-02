@@ -15,6 +15,7 @@ import pyforms
 from pyforms.basewidget import BaseWidget
 from pyforms.controls import ControlButton
 from pyforms.controls import ControlEmptyWidget
+from pyforms.controls import ControlLabel
 
 from pyforms_gui.basewidget import no_columns
 
@@ -70,6 +71,7 @@ class MainUI(BaseWidget):
         self._tracPanel = ControlEmptyWidget()
         self._configBtn = ControlButton()
         self._settingsBtn = ControlButton('User Prefs')
+        self._versionInfo = ControlLabel('v%s' % Config.version)
 
         # Assign control properties
         self._tracPanel.value = self._TracControlUI
@@ -98,7 +100,7 @@ class MainUI(BaseWidget):
                          'enableTracControl': '_tracPanel'}[key]
                 formset += "'%s:%s': ['%s']," % (letter, title, panel)
                 i += 1
-        formset = formset[:-1] + "}), ('_configBtn', '_settingsBtn')]"
+        formset = formset[:-1] + "}), ('_configBtn', '_settingsBtn'), ('_versionInfo')]"
         exec(formset)
         del formset
 

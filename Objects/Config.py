@@ -97,6 +97,9 @@ icons = {
     }
 }
 
+# Version info
+version = '1.0.3'
+
 
 def faIcon(name):
     return faLibrary + '/' + name + '.svg'
