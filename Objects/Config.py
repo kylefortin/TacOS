@@ -30,6 +30,8 @@ logFile = data + '/log.tacos'
 
 # Application geometry
 geometry = (100, 100, 800, 600)
+controlWidth = 200
+controlHeight = 100
 
 # Global constants
 outputPinList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]

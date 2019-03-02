@@ -20,7 +20,7 @@ class LightControl(ControlButton):
         self._form.clicked.connect(self.__callback)
         self._form.setCheckable(True)
         self._form.setIconSize(QSize(Config.iconSize, Config.iconSize))
-        self._form.setFixedSize(300, 100)
+        self._form.setFixedSize(Config.controlWidth, Config.controlHeight)
 
     def __callback(self):
         if self.parent is not None:
