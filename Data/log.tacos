@@ -1,0 +1,18 @@
+2019-03-03 12:45:34.779001 -- UI : LightControl -- TacOS LightControl UI initialized successfully
+2019-03-03 12:45:34.832274 -- UI : OBAControl -- TacOS OBAControl UI initialized successfully
+2019-03-03 12:45:34.841084 -- UI : TracControl -- TacOS TracControl UI initialized successfully
+2019-03-03 12:45:41.087281 -- UI : OBAConfig -- Loaded preconfigured OBA Element : Compressor Main, 1, False, True, compressor
+2019-03-03 12:45:41.091016 -- UI : OBAConfig -- Loaded preconfigured OBA Element : Tank Vent, 2, True, True, valve
+2019-03-03 12:45:41.095210 -- UI : OBAConfig -- Loaded preconfigured OBA Element : Front Air Line, 3, False, True, airhose
+2019-03-03 12:45:41.099080 -- UI : OBAConfig -- Loaded preconfigured OBA Element : Rear Air Line, 4, False, True, airhose
+2019-03-03 12:45:41.100452 -- UI : OBAConfig -- Loaded 4 OBA elements from local config file.
+2019-03-03 12:45:41.100766 -- UI : OBAConfig -- TacOS OBAConfig UI initialized successfully
+2019-03-03 12:45:43.281999 -- UI : OBAConfig -- Transferring to EditOBA UI
+2019-03-03 12:45:52.704798 -- UI : OBAConfig -- Pickled 4 OBA elements to local config file.
+2019-03-03 12:45:52.705757 -- UI : OBAConfig -- Terminating TacOS OBAConfig UI
+2019-03-03 12:45:52.746967 -- UI : OBAControl -- TacOS OBAControl UI initialized successfully
+2019-03-03 12:45:57.985479 -- UI : TracConfig -- Loaded preconfigured Trac : Front Diff, 8, True, frontDiff
+2019-03-03 12:45:57.989684 -- UI : TracConfig -- Loaded preconfigured Trac : Rear Diff, 9, True, rearDiff
+2019-03-03 12:45:57.990390 -- UI : TracConfig -- Loaded 2 tracs from local config file.
+2019-03-03 12:45:57.991957 -- UI : TracConfig -- TacOS TracConfig UI initialized successfully
+2019-03-03 12:46:01.022672 -- UI : TracConfig -- Transferring to EditTrac UI

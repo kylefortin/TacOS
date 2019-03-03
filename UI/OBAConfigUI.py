@@ -136,17 +136,20 @@ class OBAConfigUI(OBAs, BaseWidget):
 
     def __editOBA(self):
         selectedIndex = self._obaList.selected_row_index
-        selectedName = self._obaList.get_value(0, selectedIndex)
-        selectedOutputPin = str(self._obaList.get_value(1, selectedIndex))
-        selectedMomentary = self._obaList.get_value(2, selectedIndex) != 'false'
-        selectedEnabled = self._obaList.get_value(3, selectedIndex) != 'false'
-        selectedIcon = self._obaList.get_value(4, selectedIndex)
-        win = EditOBAUI(selectedName, selectedOutputPin, selectedEnabled, selectedIcon,
-                        selectedMomentary, selectedIndex, self.parent.availablePins(selectedOutputPin))
-        win.parent = self
-        msg = 'Transferring to EditOBA UI'
-        self._logger.log(msg)
-        win.show()
+        if selectedIndex is not None:
+            selectedIndex = self._obaList.selected_row_index
+            selectedName = self._obaList.get_value(0, selectedIndex)
+            selectedOutputPin = str(self._obaList.get_value(1, selectedIndex))
+            selectedMomentary = self._obaList.get_value(2, selectedIndex) != 'false'
+            selectedEnabled = self._obaList.get_value(3, selectedIndex) != 'false'
+            selectedIcon = self._obaList.get_value(4, selectedIndex)
+            win = EditOBAUI(selectedName, selectedOutputPin, selectedEnabled, selectedIcon,
+                            selectedMomentary, selectedIndex, self.parent.availablePins(selectedOutputPin))
+            win.parent = self
+            msg = 'Transferring to EditOBA UI'
+            self._logger.log(msg)
+            self.parent.disableConfigButtons()
+            self.parent.obaPanel.value = win
 
     def __closeBtnAction(self):
         self.close()

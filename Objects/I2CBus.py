@@ -8,6 +8,8 @@ Object class for set up communications with the I2C bus on RasPi.
 Based on Relay16 by IAScaled.
 """
 
+import time
+
 try:
     from smbus import SMBus
 except ImportError:
@@ -49,8 +51,11 @@ class I2CBus(object):
     def deEnergizeAll(self):
         self._state = 0x0000
         if not self._debug:
-            self.__sendI2CData()
             self._logger.log('De-energizing all relays.')
+            success = False
+            while not success:
+                success = self.__sendI2CData()
+                time.sleep(0.1)
         else:
             print('De-energizing all relays.')
             print('I2C Bus state : %s' % str(bin(self._state)))
@@ -65,8 +70,11 @@ class I2CBus(object):
         if checkRelayInputValue(relay):
             self._state |= 1 << (relay - 1)
             if not self._debug:
-                self.__sendI2CData()
                 self._logger.log('Energizing relay @ position %s' % relay)
+                success = False
+                while not success:
+                    success = self.__sendI2CData()
+                    time.sleep(0.1)
             else:
                 print('Energizing relay @ position %s' % relay)
                 print('I2C Bus state : %s' % str(bin(self._state)))
@@ -81,16 +89,24 @@ class I2CBus(object):
         if checkRelayInputValue(relay):
             self._state &= ~(1 << (relay - 1))
             if not self._debug:
-                self.__sendI2CData()
                 self._logger.log('De-energizing relay @ position %s' % relay)
+                success = False
+                while not success:
+                    success = self.__sendI2CData()
+                    time.sleep(0.1)
             else:
                 print('De-energizing relay @ position %s' % relay)
                 print('I2C Bus state : %s' % str(bin(self._state)))
 
     def __sendI2CData(self):
-        self.bus.write_byte_data(
-            int(self.address, 16), 0xFF & ~self.state, 0xFF & (~(0x00FF & (self.state >> 8)))
-        )
+        try:
+            self.bus.write_byte_data(
+                int(self.address, 16), 0xFF & ~self.state, 0xFF & (~(0x00FF & (self.state >> 8)))
+            )
+            return True
+        except Exception as e:
+            self.logger.log('Error setting relay state : %s' % e)
+            return False
 
     @property
     def logger(self):

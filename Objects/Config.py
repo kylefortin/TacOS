@@ -81,7 +81,7 @@ icons = {
             'name': 'Front Diff Lock', 'path': tracControlIcons + '/fdiff.png'
         },
         'rearDiff': {
-            'name': 'Read Diff Lock', 'path': tracControlIcons + '/rdiff.png'
+            'name': 'Rear Diff Lock', 'path': tracControlIcons + '/rdiff.png'
         }
     },
     'css': {
@@ -98,7 +98,7 @@ icons = {
 }
 
 # Version info
-version = '1.0.3'
+version = '1.0.4'
 
 
 def faIcon(name):
