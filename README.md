@@ -5,7 +5,7 @@ Designed to interface from a Raspberry Pi via the I2C bus to an external 12V rel
 
 ## Current Version
 
-Current version is `1.0.4`
+Current version is `1.0.5`
 
 ## Dependencies
   +*TacOS requires SIP, PyQt5 and QScintilla to be built and installed on the local machine.*  
