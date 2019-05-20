@@ -8,19 +8,15 @@ The main UI for the TacOS environment.  Envelops all other window modules in a d
 """
 
 import pickle
-
 import sys
-
 import pyforms
+import os
 from pyforms.basewidget import BaseWidget
 from pyforms.controls import ControlButton
 from pyforms.controls import ControlEmptyWidget
 from pyforms.controls import ControlLabel
-
 from pyforms_gui.basewidget import no_columns
-
 from AnyQt.QtWidgets import QTabWidget
-
 from Objects import Config
 from Objects.I2CBus import I2CBus
 from Objects.Logger import Logger
@@ -72,6 +68,7 @@ class MainUI(BaseWidget):
         self._configBtn = ControlButton()
         self._settingsBtn = ControlButton('User Prefs')
         self._versionInfo = ControlLabel('v%s' % Config.version)
+        self._nightMode = ControlButton('')
 
         # Assign control properties
         self._tracPanel.value = self._TracControlUI
@@ -81,10 +78,21 @@ class MainUI(BaseWidget):
         self._configBtn._form.setFixedHeight(50)
         self._settingsBtn.icon = Config.faIcon('user-cog')
         self._settingsBtn._form.setFixedHeight(50)
+        self._nightMode._form.setFixedHeight(50)
+        try:
+            self._nightMode.icon = {True: Config.faIcon('sun'), False: Config.faIcon('moon')} \
+                [self._prefs['nightMode']]
+        except KeyError:
+            self._nightMode.icon = Config.faIcon('sun')
+        try:
+            self._nightMode.label = {True: 'Day Mode', False: 'Night Mode'}[self._prefs['nightMode']]
+        except KeyError:
+            self._nightMode.label = 'Day Mode'
 
         # Assign button functions
         self._configBtn.value = self.__configBtnAction
         self._settingsBtn.value = self.__settingsBtnAction
+        self._nightMode.value = self.__nightModeBtnAction
 
         # Assign form layout
         i = ord('a')
@@ -100,7 +108,7 @@ class MainUI(BaseWidget):
                          'enableTracControl': '_tracPanel'}[key]
                 formset += "'%s:%s': ['%s']," % (letter, title, panel)
                 i += 1
-        formset = formset[:-1] + "}), ('_configBtn', '_settingsBtn'), ('_versionInfo')]"
+        formset = formset[:-1] + "}), ('_configBtn', '_settingsBtn', '_nightMode'), ('_versionInfo')]"
         exec(formset)
         del formset
 
@@ -214,6 +222,21 @@ class MainUI(BaseWidget):
         for control in [self._settingsBtn, self._configBtn]:
             control.enabled = True
 
+    def toggleNightMode(self):
+        try:
+            _currentMode = self.prefs['nightMode']
+        except KeyError:
+            _currentMode = False
+        _value = {True: Config.dayBright, False: Config.nightBright}[_currentMode]
+        self._nightMode.icon = {True: Config.faIcon('sun'), False: Config.faIcon('moon')} \
+            [not _currentMode]
+        self._nightMode.label = {True: 'Day Mode', False: 'Night Mode'}[not _currentMode]
+        _cmd = "echo %s > /sys/class/backlight/rpi_backlight/brightness" % _value
+        os.system(_cmd)
+        self.prefs['nightMode'] = not _currentMode
+        self.__savePrefs()
+        self.logger.log('Night mode %s: backlight set to %s' % (not _currentMode, _value))
+
     def __savePrefs(self):
         pPrefs = open(Config.prefs, 'wb')
         pickle.dump(self._prefs, pPrefs)
@@ -249,6 +272,9 @@ class MainUI(BaseWidget):
             self._lightPanel.value = win
         else:
             self._tracPanel.value = win
+
+    def __nightModeBtnAction(self):
+        self.toggleNightMode()
 
     @property
     def LightControlUI(self):
