@@ -45,7 +45,7 @@ standardLights = {
     '2': {'name': 'Roof', 'outputPin': 3, 'enabled': True}
 }
 dayBright = 255
-nightBright = 127
+nightBright = 63
 
 icons = {
     'logos': {
@@ -100,7 +100,7 @@ icons = {
 }
 
 # Version info
-version = '1.1.0'
+version = '1.1.1'
 
 
 def faIcon(name):

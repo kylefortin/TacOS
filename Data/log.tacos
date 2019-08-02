@@ -1,0 +1,5 @@
+2019-08-02 12:21:50.669405 -- UI : LightControl -- TacOS LightControl UI initialized successfully
+2019-08-02 12:21:50.812546 -- UI : OBAControl -- TacOS OBAControl UI initialized successfully
+2019-08-02 12:21:50.862906 -- UI : TracControl -- TacOS TracControl UI initialized successfully
+2019-08-02 12:21:53.441036 -- UI : Main -- Night mode True: backlight set to 63
+2019-08-02 12:21:57.326664 -- UI : Main -- Night mode False: backlight set to 255

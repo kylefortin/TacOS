@@ -124,6 +124,7 @@ class MainUI(BaseWidget):
         self.redrawOBAPanel(self._OBAControlUI.obas, True)
         self.redrawTracPanel(self._TracControlUI.tracs, True)
         self.enableConfigButtons()
+        self.__savePrefs()
 
     def showEvent(self, event):
         self.setConfigLabel()
