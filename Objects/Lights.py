@@ -8,9 +8,9 @@ A passive class that holds an array of configured Light objects
 
 """
 
+import pickle
 from Objects import Config
 from Objects.Logger import Logger
-import pickle
 from Objects.Light import Light
 
 
@@ -49,10 +49,8 @@ class Lights(object):
         lcfg = open(Config.lightConfig, 'rb')
         cfg = pickle.load(lcfg)
         for key in cfg.keys():
-            if 'icon' in cfg[key].keys():
-                self.addLight(Light(cfg[key]['name'], cfg[key]['outputPin'], cfg[key]['enabled'], cfg[key]['icon']))
-            else:
-                self.addLight(Light(cfg[key]['name'], cfg[key]['outputPin'], cfg[key]['enabled']))
+            self.addLight(Light(name=cfg[key]['name'], outputPin=cfg[key]['outputPin'], enabled=cfg[key]['enabled'],
+                                icon=cfg[key]['icon']))
             i += 1
         lcfg.close()
         msg = 'Loaded %s lights from local config file.' % i

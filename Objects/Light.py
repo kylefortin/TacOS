@@ -17,11 +17,11 @@ from Objects import Config
 
 class Light(object):
 
-    def __init__(self, name, outputPin, enabled, icon=Config.faIcon('lightbulb')):
-        self._name = str(name)
-        self._outputPin = int(outputPin)
-        self._enabled = bool(enabled)
-        self._icon = icon
+    def __init__(self, **kwargs):
+        self._name = str(kwargs.get('name', ''))
+        self._outputPin = int(kwargs.get('outputPin', 0))
+        self._enabled = bool(kwargs.get('enabled', True))
+        self._icon = kwargs.get('icon', Config.faIcon('lightbulb'))
 
     @property
     def getInfo(self):
@@ -59,7 +59,7 @@ class Light(object):
         :return: None
         """
         if value != None:
-            self._name = value
+            self._outputPin = value
         elif not isinstance(value, int):
             raise TypeError('Value param must be type <int>, given %s' % type(value))
         else:

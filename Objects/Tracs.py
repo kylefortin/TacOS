@@ -8,9 +8,9 @@ A passive class that holds an array of configured Trac objects
 
 """
 
+import pickle
 from Objects import Config
 from Objects.Logger import Logger
-import pickle
 from Objects.Trac import Trac
 
 
@@ -49,10 +49,8 @@ class Tracs(object):
         tcfg = open(Config.tracConfig, 'rb')
         cfg = pickle.load(tcfg)
         for key in cfg.keys():
-            if 'icon' in cfg[key].keys():
-                self.addTrac(Trac(cfg[key]['name'], cfg[key]['outputPin'], cfg[key]['enabled'], cfg[key]['icon']))
-            else:
-                self.addTrac(Trac(cfg[key]['name'], cfg[key]['outputPin'], cfg[key]['enabled']))
+            self.addTrac(Trac(name=cfg[key]['name'], outputPin=cfg[key]['outputPin'], enabled=cfg[key]['enabled'],
+                              icon=cfg[key]['icon']))
             i += 1
         tcfg.close()
         msg = 'Loaded %s tracs from local config file.' % i

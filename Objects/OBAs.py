@@ -50,16 +50,9 @@ class OBAs(object):
         obacfg = open(Config.obaConfig, 'rb')
         cfg = pickle.load(obacfg)
         for key in cfg.keys():
-            if 'momentary' in cfg[key].keys():
-                self.addOBA(
-                    OBA(cfg[key]['name'], cfg[key]['outputPin'], cfg[key]['enabled'],
-                        cfg[key]['icon'], cfg[key]['momentary'])
-                )
-            else:
-                self.addOBA(
-                    OBA(cfg[key]['name'], cfg[key]['outputPin'], cfg[key]['enabled'],
-                        cfg[key]['icon'])
-                )
+            self.addOBA(
+                OBA(name=cfg[key]['name'], outputPin=cfg[key]['outputPin'], enabled=cfg[key]['enabled'],
+                    icon=cfg[key]['icon']))
             i += 1
         obacfg.close()
         msg = 'Loaded %s OBA elements from local config file.' % i

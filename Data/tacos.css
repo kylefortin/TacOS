@@ -123,6 +123,8 @@ QComboBox
     border-style: solid;
     border: 1px solid #1e1e1e;
     border-radius: 5;
+    width: 150;
+    height: 25;
 }
 
 QComboBox:hover,QPushButton:hover
@@ -374,7 +376,7 @@ QTabBar::tab {
     padding-bottom: 2px;
     margin-right: -1px;
     height: 50;
-    width: 200;
+    width: 150;
 }
 
 QTabWidget::pane {

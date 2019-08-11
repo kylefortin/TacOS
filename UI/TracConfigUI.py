@@ -7,150 +7,177 @@ Extends the TacOS Tracs class to provide a UI to configure available Trac object
 
 """
 
-import pyforms
 from Objects.Tracs import Tracs
 from Objects.Logger import Logger
-from pyforms.basewidget import BaseWidget
-from pyforms.controls import ControlList
-from pyforms.controls import ControlButton
+from AnyQt.QtWidgets import QWidget, QTableWidget, \
+    QTableWidgetItem, QPushButton, QVBoxLayout, \
+    QHBoxLayout, QAbstractItemView, QHeaderView, \
+    QMessageBox
+from AnyQt.QtCore import Qt, pyqtSignal
 from UI.AddTracUI import AddTracUI
 from UI.EditTracUI import EditTracUI
 
 
-class TracConfigUI(Tracs, BaseWidget):
+class TracConfigUI(QWidget, Tracs):
+    keyPressed = pyqtSignal(int)
 
-    def __init__(self):
-        Tracs.__init__(self)
-        BaseWidget.__init__(self, 'TracControl Configuration')
+    def __init__(self, parent=None):
+        super(TracConfigUI, self).__init__()
+        self.parent = parent
+        self.title = 'TracControl Configuration'
+        self.layout = QVBoxLayout(self)
+        self.layout.setAlignment(Qt.AlignCenter)
+        self.setLayout(self.layout)
 
-        self._logger = Logger('tracConfig', "UI : TracConfig")
+        self._logger = Logger('tracConfig', "UI : TracConfig", level='debug')
 
-        self._tracsList = ControlList('TracControls',
-                                      add_function=self.__createTrac,
-                                      remove_function=self.__destroyTrac
-                                      )
-        self._editBtn = ControlButton('Edit')
-        self._closeBtn = ControlButton('Close')
+        # Create layout
+        self._plus = QPushButton('+', self)
+        self._plus.clicked.connect(self.__createTrac)
+        self._minus = QPushButton('-', self)
+        self._minus.clicked.connect(self.__destroyTrac)
+        panel = QWidget(self)
+        panel.layout = QHBoxLayout(panel)
+        panel.layout.setAlignment(Qt.AlignRight)
+        panel.layout.addWidget(self._plus)
+        panel.layout.addWidget(self._minus)
+        self.layout.addWidget(panel)
+        self._tracsList = QTableWidget(0, 4, self)
+        self._tracsList.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self._tracsList.setHorizontalHeaderLabels(['Name', 'Output Pin', 'Enabled', 'Icon'])
+        self._tracsList.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.keyPressed.connect(self.__onKey)
+        self.layout.addWidget(self._tracsList)
+        self._editBtn = QPushButton('Edit', self)
+        self._editBtn.clicked.connect(self.__editTrac)
+        self.layout.addWidget(self._editBtn)
+        self._closeBtn = QPushButton('Close', self)
+        self._closeBtn.clicked.connect(self.__closeBtnAction)
+        self.layout.addWidget(self._closeBtn)
 
-        # Control settings
-        self._tracsList.horizontal_headers = ['Name', 'Output Pin', 'Enabled', 'Icon']
-        self._tracsList.readonly = True
-        self._tracsList.select_entire_row = True
-
-        # Assign button callback fx
-        self._editBtn.value = self.__editTrac
-        self._closeBtn.value = self.__closeBtnAction
+        # Load config files
         self.load()
-
-        self.formset = [
-            '_tracsList',
-            '_editBtn',
-            '_closeBtn'
-        ]
 
         msg = 'TacOS TracConfig UI initialized successfully'
         self._logger.log(msg)
 
-    def closeEvent(self, event):
-        self.save()
-        self._logger.log('Terminating TacOS TracConfig UI')
-        self.parent.configBtn.enabled = True
+    def keyPressEvent(self, event):
+        super(TracConfigUI, self).keyPressEvent(event)
+        self.keyPressed.emit(event.key())
+
+    def refresh(self):
+        self.__init__(parent=self.parent)
 
     def addTrac(self, trac):
         super(TracConfigUI, self).addTrac(trac)
-        self._tracsList += [trac.name, trac.outputPin, trac.enabled, trac.icon]
-        msg = 'Loaded preconfigured Trac : %s, %s, %s, %s' % (
-            trac.name,
-            trac.outputPin,
-            trac.enabled,
-            trac.icon
-        )
-        self._logger.log(msg)
+        idx = self._tracsList.rowCount()
+        self._tracsList.setRowCount(idx + 1)
+        self.__setRow(idx, trac)
 
-    def editTrac(self, trac, index):
-        super(TracConfigUI, self).editTrac(trac, index)
-        self._tracsList.set_value(0, index, trac.name)
-        self._tracsList.set_value(1, index, trac.outputPin)
-        self._tracsList.set_value(2, index, trac.enabled)
-        self._tracsList.set_value(3, index, trac.icon)
-        trac.close()
-        msg = 'Updated Trac at index %s : %s, %s, %s, %s' % (
-            index,
-            trac.name,
-            trac.outputPin,
-            trac.enabled,
-            trac.icon
-        )
-        self._logger.log(msg)
-        self.updateUI()
+    def editTrac(self, trac, idx):
+        super(TracConfigUI, self).editTrac(trac, idx)
+        self.__editRow(idx, trac)
 
     def createTrac(self, trac):
         super(TracConfigUI, self).createTrac(trac)
-        self._tracsList += [trac.name, trac.outputPin, trac.enabled, trac.icon]
-        self.parent.tracPanel.value = self
-        trac.close()
-        msg = 'Created new Trac : %s, %s, %s, %s' % (
-            trac.name,
-            trac.outputPin,
-            trac.enabled,
-            trac.icon
-        )
-        self._logger.log(msg)
-        self.updateUI()
+        idx = self._tracsList.rowCount()
+        self._tracsList.setRowCount(idx + 1)
+        self.__setRow(idx, trac)
 
     def rmTrac(self, index):
         super(TracConfigUI, self).rmTrac(index)
-        self._tracsList -= index
-        msg = 'Removed Trac at index %s' % (
-            index
-        )
-        self._logger.log(msg)
+        self._tracsList.removeRow(index)
 
-    def updateUI(self):
-        self.close()
-        self.parent.redrawTracPanel(self.parent.TracControlUI.tracs)
-        win = TracConfigUI()
-        win.parent = self.parent
-        self.parent.tracPanel.value = win
+    def __onKey(self, key):
+        if key == Qt.Key_Escape:
+            self._tracsList.clearSelection()
+
+    def __setRow(self, idx, trac):
+        c = 0
+        for item in [trac.name, str(trac.outputPin),
+                     str(trac.enabled), trac.icon]:
+            tableItem = QTableWidgetItem(item)
+            tableItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self._tracsList.setItem(idx, c, tableItem)
+            c += 1
+
+    def __editRow(self, idx, trac):
+        map = {
+            0: trac.name,
+            1: str(trac.outputPin),
+            2: str(trac.enabled),
+            3: trac.icon
+        }
+        for col in map.keys():
+            tableItem = self._tracsList.item(idx, col)
+            tableItem.setText(map[col])
 
     def __createTrac(self):
-        win = AddTracUI(availablePins=self.parent.availablePins())
-        win.parent = self
-        msg = 'Transferring to AddTrac UI'
-        self._logger.log(msg)
+        # Create Edit UI and add to tabs
+        ui = AddTracUI(availablePins=self.parent.availablePins(), parent=self)
+        ui.setParent(self)
+        i = self.parent.tabs.addTab(ui, 'Create TracControl Element')
+        self.parent.tabs.setCurrentIndex(i)
         self.parent.disableConfigButtons()
-        self.parent.tracPanel.value = win
 
     def __destroyTrac(self):
-        rows = self._tracsList.selected_rows_indexes
+        rows = self._tracsList.selectedIndexes()
         names = []
         for i in rows:
-            names.append(self._tracsList.get_value(0, i))
+            names.append(self._tracsList.item(i.row(), 0))
         for name in names:
-            for n in range(self._tracsList.rows_count):
-                if self._tracsList.get_value(0, n) == name:
+            for n in range(self._tracsList.rowCount()):
+                if self._tracsList.item(n, 0) == name:
                     self.rmTrac(n)
-        self.updateUI()
 
     def __editTrac(self):
-        selectedIndex = self._tracsList.selected_row_index
-        if selectedIndex is not None:
-            selectedName = self._tracsList.get_value(0, selectedIndex)
-            selectedOutputPin = str(self._tracsList.get_value(1, selectedIndex))
-            selectedEnabled = self._tracsList.get_value(2, selectedIndex) != 'false'
-            selectedIcon = self._tracsList.get_value(3, selectedIndex)
-            win = EditTracUI(selectedName, selectedOutputPin, selectedEnabled, selectedIcon,
-                             selectedIndex, self.parent.availablePins(selectedOutputPin))
-            win.parent = self
-            msg = 'Transferring to EditTrac UI'
-            self._logger.log(msg)
+        sIdx = self._tracsList.currentIndex().row()
+        if sIdx not in [None, -1]:
+            # Read selected row attributes
+            sName = self._tracsList.item(sIdx, 0).text()
+            sPin = int(self._tracsList.item(sIdx, 1).text())
+            sEnable = self._tracsList.item(sIdx, 2).text() != 'False'
+            sIcon = self._tracsList.item(sIdx, 3).text()
+            # Disable Config tab
+            self.parent.tabs.setTabEnabled(self.parent.tabs.currentIndex(), False)
+            # Create Edit UI and add to tabs
+            ui = EditTracUI(name=sName, outputPin=sPin, enabled=sEnable, icon=sIcon,
+                            index=sIdx, availablePins=self.parent.availablePins(sPin), parent=self)
+            ui.setParent(self)
+            i = self.parent.tabs.addTab(ui, 'Edit TracControl Element')
+            self.parent.tabs.setCurrentIndex(i)
             self.parent.disableConfigButtons()
-            self.parent.tracPanel.value = win
+        else:
+            msgBox = QMessageBox()
+            msgBox.setIcon(QMessageBox.Warning)
+            msgBox.setWindowTitle('Unable to Edit TracControl Element')
+            msgBox.setText('Please select a TracControl element before editing.')
+            msgBox.setStandardButtons(QMessageBox.Close)
+            msgBox.exec_()
 
     def __closeBtnAction(self):
-        self.close()
+        self.save()
         if self.parent is not None:
-            self.parent.redrawTracPanel(self.parent.TracControlUI.tracs, True)
+            self.parent.tabs.removeTab(self.parent.tabs.currentIndex())
+            self.parent.redrawTracPanel(self.__formatTrac(), True)
+            self.parent._configBtn.setVisible(True)
+
+    def __formatTrac(self):
+        i = 0
+        r = {}
+        for trac in self.tracs:
+            try:
+                r[i] = {'name': trac.name,
+                        'outputPin': trac.outputPin,
+                        'active': self.parent.TracControlUI.tracs[i]['active'],
+                        'icon': trac.icon}
+            except:
+                r[i] = {'name': trac.name,
+                        'outputPin': trac.outputPin,
+                        'active': False,
+                        'icon': trac.icon}
+            i += 1
+        return r
 
     @property
     def logger(self):
@@ -170,7 +197,3 @@ class TracConfigUI(Tracs, BaseWidget):
             self._logger.name = name
         if title != '':
             self._logger.title = title
-
-
-if __name__ == '__main__':
-    pyforms.start_app(TracConfigUI)

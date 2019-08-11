@@ -12,12 +12,12 @@ from Objects import Config
 
 class OBA(object):
 
-    def __init__(self, name, outputPin, enabled, icon=Config.faIcon('wind'), momentary=False):
-        self._name = str(name)
-        self._outputPin = int(outputPin)
-        self._enabled = bool(enabled)
-        self._icon = icon
-        self._momentary = momentary
+    def __init__(self, **kwargs):
+        self._name = str(kwargs.get('name', ''))
+        self._outputPin = int(kwargs.get('outputPin', 0))
+        self._enabled = bool(kwargs.get('enabled', True))
+        self._icon = kwargs.get('icon', Config.faIcon('wind'))
+        self._momentary = bool(kwargs.get('momentary', False))
 
     @property
     def name(self):
@@ -50,8 +50,8 @@ class OBA(object):
         :type value: int
         :return: None
         """
-        if value != None:
-            self._name = value
+        if value is not None:
+            self._outputPin = value
         elif not isinstance(value, int):
             raise TypeError('Value param must be type <int>, given %s' % type(value))
         else:

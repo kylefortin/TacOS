@@ -9,28 +9,33 @@ The main UI for the TacOS environment.  Envelops all other window modules in a d
 
 import pickle
 import sys
-import pyforms
 import os
-from pyforms.basewidget import BaseWidget
-from pyforms.controls import ControlButton
-from pyforms.controls import ControlEmptyWidget
-from pyforms.controls import ControlLabel
-from pyforms_gui.basewidget import no_columns
-from AnyQt.QtWidgets import QTabWidget
+from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout,\
+    QTabWidget, QPushButton, QLabel
+from AnyQt.QtGui import QIcon
+from AnyQt.QtCore import Qt
 from Objects import Config
 from Objects.I2CBus import I2CBus
+from Objects.CamViewer import CamViewer
 from Objects.Logger import Logger
 from UI.LightControlUI import LightControlUI
+from UI.LightConfigUI import LightConfigUI
 from UI.OBAControlUI import OBAControlUI
+from UI.OBAConfigUI import OBAConfigUI
 from UI.TracControlUI import TracControlUI
+from UI.TracConfigUI import TracConfigUI
 from UI.UserPrefUI import UserPrefUI
 
 
-class MainUI(BaseWidget):
+class MainUI(QWidget):
 
     def __init__(self):
-
-        BaseWidget.__init__(self, 'TacOS')
+        super(MainUI, self).__init__()
+        self.left = Config.geometry[0]
+        self.top = Config.geometry[1]
+        self.width = Config.geometry[2]
+        self.height = Config.geometry[3]
+        self.layout = QVBoxLayout(self)
 
         # Init logger
         self._logger = Logger('mainUI', 'UI : Main')
@@ -56,74 +61,100 @@ class MainUI(BaseWidget):
         del bus, address, debug
 
         # Init control UIs
-        self._LightControlUI = LightControlUI()
-        self._LightControlUI.parent = self
-        self._lightPanel = ControlEmptyWidget()
-        self._OBAControlUI = OBAControlUI()
-        self._OBAControlUI.parent = self
-        self._obaPanel = ControlEmptyWidget()
-        self._TracControlUI = TracControlUI()
-        self._TracControlUI.parent = self
-        self._tracPanel = ControlEmptyWidget()
-        self._configBtn = ControlButton()
-        self._settingsBtn = ControlButton('User Prefs')
-        self._versionInfo = ControlLabel('v%s' % Config.version)
-        self._nightMode = ControlButton('')
+        self._LightControlUI = LightControlUI(parent=self)
+        self._LightControlUI.setParent(self)
+        self._OBAControlUI = OBAControlUI(parent=self)
+        self._OBAControlUI.setParent(self)
+        self._TracControlUI = TracControlUI(parent=self)
+        self._TracControlUI.setParent(self)
+        self._CamViewer = CamViewer(0)
+        self._CamViewer.setParent(self)
 
-        # Assign control properties
-        self._tracPanel.value = self._TracControlUI
-        self._lightPanel.value = self._LightControlUI
-        self._obaPanel.value = self._OBAControlUI
-        self._configBtn.icon = Config.faIcon('cog')
-        self._configBtn._form.setFixedHeight(50)
-        self._settingsBtn.icon = Config.faIcon('user-cog')
-        self._settingsBtn._form.setFixedHeight(50)
-        self._nightMode._form.setFixedHeight(50)
-        try:
-            self._nightMode.icon = {True: Config.faIcon('sun'), False: Config.faIcon('moon')} \
-                [self._prefs['nightMode']]
-        except KeyError:
-            self._nightMode.icon = Config.faIcon('sun')
-        try:
-            self._nightMode.label = {True: 'Day Mode', False: 'Night Mode'}[self._prefs['nightMode']]
-        except KeyError:
-            self._nightMode.label = 'Day Mode'
-
-        # Assign button functions
-        self._configBtn.value = self.__configBtnAction
-        self._settingsBtn.value = self.__settingsBtnAction
-        self._nightMode.value = self.__nightModeBtnAction
-
-        # Assign form layout
-        i = ord('a')
-        formset = "self._formset = [no_columns({"
-        for key in ['enableOBA', 'enableLighting', 'enableTracControl']:
+        # Create tab strip
+        self._tabs = QTabWidget(self)
+        for key in ['enableOBA', 'enableLighting', 'enableTracControl', 'enableCamViewer']:
             if key not in self._prefs.keys() or self._prefs[key]:
-                letter = eval({True: 'unichr(i)', False: 'chr(i)'}[sys.version_info[0] < 3])
                 title = {'enableOBA': 'OnBoard Air',
                          'enableLighting': 'Lighting',
-                         'enableTracControl': 'Traction Control'}[key]
-                panel = {'enableOBA': '_obaPanel',
-                         'enableLighting': '_lightPanel',
-                         'enableTracControl': '_tracPanel'}[key]
-                formset += "'%s:%s': ['%s']," % (letter, title, panel)
-                i += 1
-        formset = formset[:-1] + "}), ('_configBtn', '_settingsBtn', '_nightMode'), ('_versionInfo')]"
-        exec(formset)
-        del formset
+                         'enableTracControl': 'Traction Control',
+                         'enableCamViewer': 'Camera Viewer'}[key]
+                panel = {'enableOBA': '_OBAControlUI',
+                         'enableLighting': '_LightControlUI',
+                         'enableTracControl': '_TracControlUI',
+                         'enableCamViewer': '_CamViewer'}[key]
+                self._tabs.addTab(eval('self.%s' % panel), title)
+        self._tabs.currentChanged.connect(self.__tabChange)
+        self.layout.addWidget(self._tabs)
+
+        # Create button panel
+        self._btnPanel = QWidget(self)
+        self._btnPanel.layout = QHBoxLayout(self._btnPanel)
+        self.layout.addWidget(self._btnPanel)
+
+        # Create Config button
+        self._configBtn = QPushButton('', self)
+        self._configBtn.setFixedHeight(50)
+        self._configBtn.setIcon(QIcon(Config.faIcon('cog')))
+        self._configBtn.clicked.connect(self.__configBtnAction)
+        self._btnPanel.layout.addWidget(self._configBtn)
+
+        # Create User Prefs button
+        self._settingsBtn = QPushButton('User Prefs', self)
+        self._settingsBtn.setIcon(QIcon(Config.faIcon('user-cog')))
+        self._settingsBtn.setFixedHeight(50)
+        self._settingsBtn.clicked.connect(self.__settingsBtnAction)
+        self._btnPanel.layout.addWidget(self._settingsBtn)
+
+        # Create Night Mode button
+        self._nightMode = QPushButton('', self)
+        self._nightMode.setFixedHeight(50)
+        try:
+            self._nightMode.setIcon(QIcon({True: Config.faIcon('sun'), False: Config.faIcon('moon')}\
+                [self._prefs['nightMode']]))
+        except KeyError:
+            self._nightMode.setIcon(QIcon(Config.faIcon('sun')))
+        try:
+            self._nightMode.setText({True: 'Day Mode', False: 'Night Mode'}[self._prefs['nightMode']])
+        except KeyError:
+            self._nightMode.setText('Day Mode')
+        self._nightMode.clicked.connect(self.__nightModeBtnAction)
+        self._btnPanel.layout.addWidget(self._nightMode)
+
+        bottomPanel = QWidget(self)
+        bottomPanel.layout = QHBoxLayout(bottomPanel)
+        bottomPanel.layout.addWidget(QWidget(self))
+        # Create version info label
+        self._versionInfo = QLabel('v%s' % Config.version, self)
+        bottomPanel.layout.addWidget(self._versionInfo)
+        bottomPanel.layout.setAlignment(Qt.AlignCenter)
+        # Create OSK button
+        self._oskShow = QPushButton('', self)
+        self._oskShow.setIcon(QIcon(Config.faIcon('keyboard')))
+        self._oskShow.setFixedWidth(100)
+        self._oskShow.clicked.connect(self.__showOSK)
+        bottomPanel.layout.addWidget(self._oskShow)
+        self.layout.addWidget(bottomPanel)
+
+    def __tabChange(self):
+        if 'Camera Viewer' in self.tabs.tabText(self.tabs.currentIndex()):
+            self._CamViewer.start()
+        else:
+            self._CamViewer.stop()
 
     def setConfigLabel(self):
-        self._configBtn.label = 'Configure ' + self._tabs[0].tabText(self._tabs[0].currentIndex())
+        self._configBtn.setText('Configure ' + self._tabs.tabText(self._tabs.currentIndex()))
 
     def closeEvent(self, event):
         self.__savePrefs()
         self._i2cBus.deEnergizeAll()
 
     def closePrefs(self):
-        self.redrawLightPanel(self._LightControlUI.lights, True)
+        for i in range(self.tabs.count()):
+            if 'User Prefs' in self.tabs.tabText(i):
+                self.tabs.removeTab(i)
+        self.redrawTracPanel(self._TracControlUI.tracs, False)
+        self.redrawLightPanel(self._LightControlUI.lights, False)
         self.redrawOBAPanel(self._OBAControlUI.obas, True)
-        self.redrawTracPanel(self._TracControlUI.tracs, True)
-        self.enableConfigButtons()
         self.__savePrefs()
 
     def showEvent(self, event):
@@ -133,43 +164,67 @@ class MainUI(BaseWidget):
         self.setConfigLabel()
 
     def redrawLightPanel(self, lights, setWin=False):
-        self._LightControlUI = LightControlUI()
-        self._LightControlUI.parent = self
-        if setWin:
-            self.enableConfigButtons()
-            self._lightPanel.value = self._LightControlUI
-        else:
+        self._LightControlUI = LightControlUI(parent=self)
+        self._LightControlUI.setParent(self)
+        for i in range(self._tabs.count()):
+            self._tabs.setTabEnabled(i, True)
+            if 'Lighting' in self._tabs.tabText(i):
+                self._tabs.removeTab(i)
+                if i >= self._tabs.count():
+                    self._tabs.addTab(self._LightControlUI, 'Lighting')
+                else:
+                    self._tabs.insertTab(i, self._LightControlUI, 'Lighting')
+                if setWin:
+                    self._tabs.setCurrentIndex(i)
+                    self.enableConfigButtons()
+        if not setWin:
             self.disableConfigButtons()
         for key in lights:
             if lights[key]['active']:
                 control = eval('self._LightControlUI._%s' % key)
-                control.form.setChecked(True)
+                control.setChecked(True)
 
     def redrawOBAPanel(self, obas, setWin=False):
-        self._OBAControlUI = OBAControlUI()
-        self._OBAControlUI.parent = self
-        if setWin:
-            self.enableConfigButtons()
-            self._obaPanel.value = self._OBAControlUI
-        else:
+        self._OBAControlUI = OBAControlUI(parent=self)
+        self._OBAControlUI.setParent(self)
+        for i in range(self._tabs.count()):
+            self._tabs.setTabEnabled(i, True)
+            if 'OnBoard Air' in self._tabs.tabText(i):
+                self._tabs.removeTab(i)
+                if i >= self._tabs.count():
+                    self._tabs.addTab(self._OBAControlUI, 'OnBoard Air')
+                else:
+                    self._tabs.insertTab(i, self._OBAControlUI, 'OnBoard Air')
+                if setWin:
+                    self._tabs.setCurrentIndex(i)
+                    self.enableConfigButtons()
+        if not setWin:
             self.disableConfigButtons()
         for key in obas:
             if obas[key]['active']:
                 control = eval('self._OBAControlUI._%s' % key)
-                control.form.setChecked(True)
+                control.setChecked(True)
 
     def redrawTracPanel(self, tracs, setWin=False):
-        self._TracControlUI = TracControlUI()
-        self._TracControlUI.parent = self
-        if setWin:
-            self.enableConfigButtons()
-            self._tracPanel.value = self._TracControlUI
-        else:
+        self._TracControlUI = TracControlUI(parent=self)
+        self._TracControlUI.setParent(self)
+        for i in range(self._tabs.count()):
+            self._tabs.setTabEnabled(i, True)
+            if 'Traction Control' in self._tabs.tabText(i):
+                self._tabs.removeTab(i)
+                if i >= self._tabs.count():
+                    self._tabs.addTab(self._TracControlUI, 'Traction Control')
+                else:
+                    self._tabs.insertTab(i, self._TracControlUI, 'Traction Control')
+                if setWin:
+                    self._tabs.setCurrentIndex(i)
+                    self.enableConfigButtons()
+        if not setWin:
             self.disableConfigButtons()
         for key in tracs:
             if tracs[key]['active']:
                 control = eval('self._TracControlUI._%s' % key)
-                control.form.setChecked(True)
+                control.setChecked(True)
 
     def availablePins(self, value=None):
         if not self._prefs['allowDuplicatePins']:
@@ -217,11 +272,11 @@ class MainUI(BaseWidget):
 
     def disableConfigButtons(self):
         for control in [self._settingsBtn, self._configBtn]:
-            control.enabled = False
+            control.setEnabled(False)
 
     def enableConfigButtons(self):
         for control in [self._settingsBtn, self._configBtn]:
-            control.enabled = True
+            control.setEnabled(True)
 
     def toggleNightMode(self):
         try:
@@ -229,9 +284,10 @@ class MainUI(BaseWidget):
         except KeyError:
             _currentMode = False
         _value = {True: Config.dayBright, False: Config.nightBright}[_currentMode]
-        self._nightMode.icon = {True: Config.faIcon('sun'), False: Config.faIcon('moon')} \
-            [not _currentMode]
-        self._nightMode.label = {True: 'Day Mode', False: 'Night Mode'}[not _currentMode]
+        self._nightMode.setIcon({True: QIcon(Config.faIcon('sun')),
+                                 False: QIcon(Config.faIcon('moon'))}
+                                [not _currentMode])
+        self._nightMode.setText({True: 'Day Mode', False: 'Night Mode'}[not _currentMode])
         _cmd = "echo %s > /sys/class/backlight/rpi_backlight/brightness" % _value
         os.system(_cmd)
         self.prefs['nightMode'] = not _currentMode
@@ -248,34 +304,43 @@ class MainUI(BaseWidget):
         _prefs = pickle.load(pPrefs)
         for key in _prefs:
             self._prefs[key] = _prefs[key]
-        if 'allowDuplicates' not in self._prefs.keys():
-            self._prefs['allowDuplicates'] = False
         pPrefs.close()
 
     def __configBtnAction(self):
-        tab = self._configBtn.label
+        tab = self._tabs.tabText(self._tabs.currentIndex())
         self.disableConfigButtons()
         if 'OnBoard Air' in tab:
-            self._obaPanel.value.configBtnAction()
+            ui = OBAConfigUI(parent=self)
         elif 'Lighting' in tab:
-            self._lightPanel.value.configBtnAction()
+            ui = LightConfigUI(parent=self)
         else:
-            self._tracPanel.value.configBtnAction()
+            ui = TracConfigUI(parent=self)
+        ui.setParent(self)
+        # Disable other tabs
+        for i in range(self.tabs.count()):
+            self.tabs.setTabEnabled(i, False)
+        i = self._tabs.addTab(ui, 'Configure %s' % tab)
+        self._tabs.setCurrentIndex(i)
+        self._configBtn.setVisible(False)
 
     def __settingsBtnAction(self):
-        tab = self._configBtn.label
-        win = UserPrefUI(self._prefs)
-        win.parent = self
         self.disableConfigButtons()
-        if 'OnBoard Air' in tab:
-            self._obaPanel.value = win
-        elif 'Lighting' in tab:
-            self._lightPanel.value = win
-        else:
-            self._tracPanel.value = win
+        self._PrefsUI = UserPrefUI(self._prefs, parent=self)
+        self._PrefsUI.setParent(self)
+        idx = self._tabs.addTab(self._PrefsUI, 'User Prefs')
+        self._tabs.setCurrentIndex(idx)
+        for i in range(self._tabs.count()):
+            if self._tabs.tabText(i) in ['OnBoard Air', 'Lighting', 'Traction Control']:
+                self._tabs.setTabEnabled(i, False)
 
     def __nightModeBtnAction(self):
         self.toggleNightMode()
+
+    def __showOSK(self):
+        if self.window().dock.isHidden():
+            self.window().dock.show()
+        else:
+            self.window().dock.hide()
 
     @property
     def LightControlUI(self):
@@ -290,16 +355,16 @@ class MainUI(BaseWidget):
         return self._TracControlUI
 
     @property
-    def lightPanel(self):
-        return self._lightPanel
+    def lightDisplayWidget(self):
+        return self._lightDisplayWidget
 
     @property
-    def obaPanel(self):
-        return self._obaPanel
+    def obaDisplayWidget(self):
+        return self._obaDisplayWidget
 
     @property
-    def tracPanel(self):
-        return self._tracPanel
+    def tracDisplayWidget(self):
+        return self._tracDisplayWidget
 
     @property
     def logger(self):
@@ -352,6 +417,6 @@ class MainUI(BaseWidget):
     def configBtn(self):
         return self._configBtn
 
-
-if __name__ == '__main__':
-    pyforms.start_app(MainUI)
+    @property
+    def tabs(self):
+        return self._tabs

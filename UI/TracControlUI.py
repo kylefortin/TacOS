@@ -7,37 +7,24 @@ Provides a control interface for enabled Trac objects in the TacOS environment.
 
 """
 
-import pyforms
 import pickle
-from pyforms.basewidget import BaseWidget
-from pyforms.basewidget import no_columns
-from Objects import Config
+from AnyQt.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
+from AnyQt.QtGui import QIcon
+from Objects import Config, Tools
 from Objects.TracControl import TracControl
 from Objects.Logger import Logger
-from UI.TracConfigUI import TracConfigUI
 
 
-def group(n, l):
-    """
-    Group a list into n tuples.
-    :param n: Qty to group by.
-    :type n: int
-    :param l: List to group.
-    :type l: list
-    :return: A list of tuples of len <= n.
-    :rtype: list
-    """
-    return [tuple(l[i:i+n]) for i in range(0, len(l), n)]
+class TracControlUI(QWidget):
 
-
-class TracControlUI(BaseWidget):
-
-    def __init__(self):
-        BaseWidget.__init__(self, 'Light Configuration')
+    def __init__(self, parent=None):
+        super(TracControlUI, self).__init__()
+        self.title = 'Light Configuration'
+        self.layout = QVBoxLayout(self)
+        self.setLayout(self.layout)
+        self._parent = parent
 
         self._logger = Logger('tracControl', "UI : TracControl")
-
-        # Init permanent controls
 
         # Init internal Lights dict
         self._tracs = {}
@@ -58,30 +45,25 @@ class TracControlUI(BaseWidget):
         # Dynamically generate controls
         keyStrings = []
         for key in self._tracs.keys():
-            x = TracControl(label=self._tracs[key]['name'])
+            x = TracControl(self._tracs[key]['name'], parent=self)
             exec("self._%s = x" % key)
             control = eval('self._%s' % key)
-            control.parent = self
-            control.icon = Config.icon('tracControl', self._tracs[key]['icon'])['path']
+            control.setParent(self)
+            control.setIcon(QIcon(Config.icon('tracControl', self._tracs[key]['icon'])['path']))
             keyStrings.append('_%s' % key)
 
-        # Control settings
+        # Organize controls in groups of tuples
+        oList = Tools.group(Config.tracColumns, keyStrings)
 
-        # Assign button callback fx
-
-        # Build dynamic formset
-        formset = "self._formset = ["
-        for item in group(Config.tracColumns, keyStrings):
-            if len(item) > 1:
-                formset = formset + 'no_columns' + str(item) + ','
-            else:
-                formset = formset + 'no_columns' + str(item)[:-2] + '),'
-
-        formset += "]"
-        exec(formset)
-
-        msg = 'TacOS TracControl UI initialized successfully'
-        self._logger.log(msg)
+        # Dynamically generate panel layout using grouped tuples
+        for oTuple in oList:
+            # Create panel and set HBox layout
+            panel = QWidget(self)
+            panel.layout = QHBoxLayout(panel)
+            for oWidget in oTuple:
+                panel.layout.addWidget(eval('self.%s' % oWidget))
+            self.layout.addWidget(panel)
+            del panel
 
     def setTrac(self, name, state):
         """
@@ -94,16 +76,8 @@ class TracControlUI(BaseWidget):
         for key in self._tracs.keys():
             if self._tracs[key]['name'] == name:
                 self._tracs[key]['active'] = state
-                self.parent.setOutputPin(self._tracs[key]['outputPin'], state)
+                self._parent.setOutputPin(self._tracs[key]['outputPin'], state)
                 break
-
-    def configBtnAction(self):
-        win = TracConfigUI()
-        win.parent = self.parent
-        self.parent.tracPanel.value = win
-
-    def __settings(self):
-        self.parent.settings()
 
     @property
     def tracs(self):
@@ -115,7 +89,3 @@ class TracControlUI(BaseWidget):
         :type value: dict
         """
         self._tracs = value
-
-
-if __name__ == '__main__':
-    pyforms.start_app(TracControlUI)

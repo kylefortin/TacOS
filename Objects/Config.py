@@ -8,7 +8,7 @@ Contains various environment configuration variables for the TacOS application.
 """
 
 import os
-
+from AnyQt.QtGui import QIcon
 
 # Define working directories
 cwd = os.path.dirname(os.path.realpath(__file__ + '/../'))
@@ -35,15 +35,11 @@ controlHeight = 100
 
 # Global constants
 outputPinList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+busList = ['1', '2']
 lightColumns = 3
 obaColumns = 2
 tracColumns = 2
 iconSize = 50
-standardLights = {
-    '0': {'name': 'Front Bumper', 'outputPin': 1, 'enabled': True},
-    '1': {'name': 'Windshield', 'outputPin': 2, 'enabled': True},
-    '2': {'name': 'Roof', 'outputPin': 3, 'enabled': True}
-}
 dayBright = 255
 nightBright = 63
 
@@ -100,11 +96,11 @@ icons = {
 }
 
 # Version info
-version = '1.1.1'
+version = '1.2.0'
 
 
 def faIcon(name):
-    return faLibrary + '/' + name + '.svg'
+    return QIcon(faLibrary + '/' + name + '.svg')
 
 
 def icon(branch, name):

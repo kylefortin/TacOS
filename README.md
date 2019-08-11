@@ -1,11 +1,12 @@
 # TacOS
 Fully customizable auxiliary lighting and accessory relay control interface.
-Built on the Pyforms / PyQt5 UI framework.
+Built on the PyQt5 UI framework.
 Designed to interface from a Raspberry Pi via the I2C bus to an external 12V relay shield.
+Optional interface to external composite video device via composite video to USB adapter.
 
 ## Current Version
 
-Current version is `1.1.1`
+Current version is `1.2.0`
 
 ## Dependencies
   +*TacOS requires SIP, PyQt5 and QScintilla to be built and installed on the local machine.*  
