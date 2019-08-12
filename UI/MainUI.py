@@ -48,7 +48,7 @@ class MainUI(QWidget):
         if 'i2cAddress' in self._prefs.keys():
             address = self._prefs['i2cAddress']
         else:
-            address = 0x20
+            address = '0x20'
         if 'i2cBus' in self._prefs.keys():
             bus = self._prefs['i2cBus']
         else:
@@ -57,7 +57,7 @@ class MainUI(QWidget):
             debug = self._prefs['i2cDebug']
         else:
             debug = False
-        self._i2cBus = I2CBus(bus, address, debug)
+        self._i2cBus = I2CBus(int(bus), str(address), debug)
         del bus, address, debug
 
         # Init control UIs
@@ -67,8 +67,9 @@ class MainUI(QWidget):
         self._OBAControlUI.setParent(self)
         self._TracControlUI = TracControlUI(parent=self)
         self._TracControlUI.setParent(self)
-        self._CamViewer = CamViewer(0)
-        self._CamViewer.setParent(self)
+        # self._CamViewer = CamViewer(0)
+        self._CamViewer = None
+        # self._CamViewer.setParent(self)
 
         # Create tab strip
         self._tabs = QTabWidget(self)
@@ -138,7 +139,7 @@ class MainUI(QWidget):
     def __tabChange(self):
         if 'Camera Viewer' in self.tabs.tabText(self.tabs.currentIndex()):
             self._CamViewer.start()
-        else:
+        elif self._CamViewer is not None:
             self._CamViewer.stop()
 
     def setConfigLabel(self):

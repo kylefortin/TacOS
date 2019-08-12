@@ -29,7 +29,7 @@ def checkRelayInputValue(value):
 
 class I2CBus(object):
 
-    def __init__(self, bus=1, address=0x20, debug=False):
+    def __init__(self, bus=1, address='0x20', debug=False):
 
         # Init logger
         self._logger = Logger('i2cBus', 'I2CBus : Controller')

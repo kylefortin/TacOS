@@ -96,7 +96,7 @@ icons = {
 }
 
 # Version info
-version = '1.2.0'
+version = '1.2.1'
 
 
 def faIcon(name):
