@@ -1,6 +1,7 @@
 from AnyQt.QtWidgets import QLineEdit
 from AnyQt.QtCore import pyqtSignal
 
+
 class LineEdit(QLineEdit):
     kb = pyqtSignal()
 

@@ -32,6 +32,7 @@ logFile = data + '/log.tacos'
 geometry = (100, 100, 800, 600)
 controlWidth = 200
 controlHeight = 100
+camHeight = 250
 
 # Global constants
 outputPinList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
@@ -42,6 +43,7 @@ tracColumns = 2
 iconSize = 50
 dayBright = 255
 nightBright = 63
+camFrameRate = 15
 
 icons = {
     'logos': {

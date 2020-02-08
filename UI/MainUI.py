@@ -11,7 +11,7 @@ import pickle
 import sys
 import os
 from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout,\
-    QTabWidget, QPushButton, QLabel
+    QTabWidget, QPushButton, QLabel, QMessageBox
 from AnyQt.QtGui import QIcon
 from AnyQt.QtCore import Qt
 from Objects import Config
@@ -67,9 +67,11 @@ class MainUI(QWidget):
         self._OBAControlUI.setParent(self)
         self._TracControlUI = TracControlUI(parent=self)
         self._TracControlUI.setParent(self)
-        # self._CamViewer = CamViewer(0)
-        self._CamViewer = None
-        # self._CamViewer.setParent(self)
+        try:
+            self._CamViewer = CamViewer(0)
+            self._CamViewer.setParent(self)
+        except Exception as e:
+            self._CamViewer = None
 
         # Create tab strip
         self._tabs = QTabWidget(self)
@@ -110,16 +112,18 @@ class MainUI(QWidget):
         self._nightMode = QPushButton('', self)
         self._nightMode.setFixedHeight(50)
         try:
-            self._nightMode.setIcon(QIcon({True: Config.faIcon('sun'), False: Config.faIcon('moon')}\
-                [self._prefs['nightMode']]))
+            icon = {True: Config.faIcon('sun'), False: Config.faIcon('moon')}[self._prefs['nightMode']]
+            self._nightMode.setIcon(QIcon(icon))
         except KeyError:
             self._nightMode.setIcon(QIcon(Config.faIcon('sun')))
         try:
-            self._nightMode.setText({True: 'Day Mode', False: 'Night Mode'}[self._prefs['nightMode']])
+            text = {True: 'Day Mode', False: 'Night Mode'}[self._prefs['nightMode']]
+            self._nightMode.setText(text)
         except KeyError:
             self._nightMode.setText('Day Mode')
         self._nightMode.clicked.connect(self.__nightModeBtnAction)
         self._btnPanel.layout.addWidget(self._nightMode)
+        self.toggleNightMode()
 
         bottomPanel = QWidget(self)
         bottomPanel.layout = QHBoxLayout(bottomPanel)
@@ -137,10 +141,11 @@ class MainUI(QWidget):
         self.layout.addWidget(bottomPanel)
 
     def __tabChange(self):
-        if 'Camera Viewer' in self.tabs.tabText(self.tabs.currentIndex()):
-            self._CamViewer.start()
-        elif self._CamViewer is not None:
-            self._CamViewer.stop()
+        if self._CamViewer is not None:
+            if 'Camera Viewer' in self.tabs.tabText(self.tabs.currentIndex()):
+                self._CamViewer.start()
+            else:
+                self._CamViewer.stop()
 
     def setConfigLabel(self):
         self._configBtn.setText('Configure ' + self._tabs.tabText(self._tabs.currentIndex()))

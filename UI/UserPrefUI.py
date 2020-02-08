@@ -15,6 +15,7 @@ from AnyQt.QtWidgets import QLineEdit, QHBoxLayout, QVBoxLayout
 from AnyQt.QtCore import Qt
 from Objects.Logger import Logger
 from Objects import Config
+import sys
 
 
 class UserPrefUI(QWidget):
@@ -55,6 +56,8 @@ class UserPrefUI(QWidget):
             Restart TacOS for changes to take effect.</em></center></html>', self
         )
         self._debugLogging = QCheckBox('Enable Debug Logs', self)
+        self._exitBtn = QPushButton('Exit TacOS', self)
+        self._exitBtn.clicked.connect(self.__exit)
 
         # Set initial values
         for control in ['startMaximized', 'allowDuplicatePins', 'enableOBA',
@@ -83,7 +86,7 @@ class UserPrefUI(QWidget):
             ['_i2cBusLabel', '_i2cBus', '_i2cAddress'],
             ['_i2cDebugLabel'],
             ['_i2cDebug'],
-            ['_closeBtn']
+            ['_closeBtn', '_exitBtn']
         ]
         for i in layoutList:
             panel = QWidget()
@@ -100,6 +103,9 @@ class UserPrefUI(QWidget):
         if self._parent is not None:
             self._parent.prefs = self.__getPrefs()
             self._parent.closePrefs()
+
+    def __exit(self):
+        sys.exit()
 
     def __getPrefs(self):
         """

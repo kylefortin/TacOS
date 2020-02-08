@@ -2527,3 +2527,13 @@
 2019-08-11 20:41:28.836085 -- UI : OBAConfig -- Loaded 4 OBA elements from local config file.
 2019-08-11 20:41:28.837798 -- UI : OBAConfig -- TacOS OBAConfig UI initialized successfully
 2019-08-11 20:41:32.856115 -- UI : OBAConfig -- Pickled 4 OBA elements to local config file.
+2020-02-08 11:07:22.228458 -- UI : OBAConfig -- Loaded 4 OBA elements from local config file.
+2020-02-08 11:07:22.229991 -- UI : OBAConfig -- TacOS OBAConfig UI initialized successfully
+2020-02-08 11:07:35.655895 -- UI : OBAConfig -- Pickled 4 OBA elements to local config file.
+2020-02-08 11:07:54.920194 -- UI : OBAConfig -- Loaded 4 OBA elements from local config file.
+2020-02-08 11:07:54.920677 -- UI : OBAConfig -- TacOS OBAConfig UI initialized successfully
+2020-02-08 11:07:56.802505 -- UI : OBAConfig -- Pickled 4 OBA elements to local config file.
+2020-02-08 11:08:09.163384 -- UI : Main -- Night mode True: backlight set to 63
+2020-02-08 11:08:12.062597 -- UI : Main -- Night mode False: backlight set to 255
+2020-02-08 11:08:12.620765 -- UI : Main -- Night mode True: backlight set to 63
+2020-02-08 11:11:06.954761 -- UI : Main -- Night mode False: backlight set to 255
