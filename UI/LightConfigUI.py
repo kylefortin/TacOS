@@ -42,9 +42,9 @@ class LightConfigUI(QWidget, Lights):
         panel.layout.addWidget(self._plus)
         panel.layout.addWidget(self._minus)
         self.layout.addWidget(panel)
-        self._lightsList = QTableWidget(0, 4, self)
+        self._lightsList = QTableWidget(0, 5, self)
         self._lightsList.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self._lightsList.setHorizontalHeaderLabels(['Name', 'Output Pin', 'Enabled', 'Icon'])
+        self._lightsList.setHorizontalHeaderLabels(['Name', 'Output Pin', 'Enabled', 'Icon', 'Strobe'])
         self._lightsList.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.keyPressed.connect(self.__onKey)
         self.layout.addWidget(self._lightsList)
@@ -95,7 +95,7 @@ class LightConfigUI(QWidget, Lights):
     def __setRow(self, idx, light):
         c = 0
         for item in [light.name, str(light.outputPin),
-                     str(light.enabled), light.icon]:
+                     str(light.enabled), light.icon, str(light.strobe)]:
             tableItem = QTableWidgetItem(item)
             tableItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
             self._lightsList.setItem(idx, c, tableItem)
@@ -106,7 +106,8 @@ class LightConfigUI(QWidget, Lights):
             0: light.name,
             1: str(light.outputPin),
             2: str(light.enabled),
-            3: light.icon
+            3: light.icon,
+            4: str(light.strobe)
         }
         for col in map.keys():
             tableItem = self._lightsList.item(idx, col)
@@ -138,10 +139,11 @@ class LightConfigUI(QWidget, Lights):
             sPin = int(self._lightsList.item(sIdx, 1).text())
             sEnable = self._lightsList.item(sIdx, 2).text() != 'False'
             sIcon = self._lightsList.item(sIdx, 3).text()
+            sStrobe = self._lightsList.item(sIdx, 4).text() != 'False'
             # Disable Config tab
             self.parent.tabs.setTabEnabled(self.parent.tabs.currentIndex(), False)
             # Create Edit UI and add to tabs
-            ui = EditLightUI(name=sName, outputPin=sPin, enabled=sEnable, icon=sIcon,
+            ui = EditLightUI(name=sName, outputPin=sPin, enabled=sEnable, icon=sIcon, strobe=sStrobe,
                              index=sIdx, availablePins=self.parent.availablePins(sPin), parent=self)
             ui.setParent(self)
             i = self.parent.tabs.addTab(ui, 'Edit Lighting Element')
@@ -170,12 +172,14 @@ class LightConfigUI(QWidget, Lights):
                 r[i] = {'name': light.name,
                         'outputPin': light.outputPin,
                         'active': self.parent.LightControlUI.lights[i]['active'],
-                        'icon': light.icon}
+                        'icon': light.icon,
+                        'strobe': light.strobe}
             except:
                 r[i] = {'name': light.name,
                         'outputPin': light.outputPin,
                         'active': False,
-                        'icon': light.icon}
+                        'icon': light.icon,
+                        'strobe': light.strobe}
             i += 1
         return r
 

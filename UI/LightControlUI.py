@@ -35,17 +35,22 @@ class LightControlUI(QWidget):
         for key in rawLights.keys():
             # Add enabled lights to internal dict
             if rawLights[key]['enabled']:
+                if 'strobe' in rawLights[key].keys():
+                    strobe = rawLights[key]['strobe']
+                else:
+                    strobe = False
                 self._lights[key] = {'name': rawLights[key]['name'],
                                      'outputPin': rawLights[key]['outputPin'],
                                      'active': False,
-                                     'icon': rawLights[key]['icon']
+                                     'icon': rawLights[key]['icon'],
+                                     'strobe': strobe
                                      }
         lcfg.close()
 
         # Dynamically generate controls
         keyStrings = []
         for key in self._lights.keys():
-            x = LightControl(self._lights[key]['name'], parent=self)
+            x = LightControl(self._lights[key]['name'], parent=self, strobe=self._lights[key]['strobe'])
             exec("self._%s = x" % key)
             control = eval('self._%s' % key)
             control.setParent(self)

@@ -43,7 +43,8 @@ tracColumns = 2
 iconSize = 50
 dayBright = 255
 nightBright = 63
-camFrameRate = 15
+camFrameRate = 30
+strobeRate = 0.5
 
 icons = {
     'logos': {
@@ -98,7 +99,7 @@ icons = {
 }
 
 # Version info
-version = '1.2.1'
+version = '1.4.1'
 
 
 def faIcon(name):

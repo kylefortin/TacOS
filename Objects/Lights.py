@@ -36,7 +36,7 @@ class Lights(object):
         configLights = {}
         i = 0
         for x in self.lights:
-            configLights[i] = {'name': x.name, 'outputPin': x.outputPin, 'enabled': x.enabled, 'icon': x.icon}
+            configLights[i] = {'name': x.name, 'outputPin': x.outputPin, 'enabled': x.enabled, 'icon': x.icon, 'strobe': x.strobe}
             i += 1
         lcfg = open(Config.lightConfig, 'wb')
         pickle.dump(configLights, lcfg)
@@ -49,8 +49,12 @@ class Lights(object):
         lcfg = open(Config.lightConfig, 'rb')
         cfg = pickle.load(lcfg)
         for key in cfg.keys():
+            if 'strobe' in cfg[key].keys():
+                strobe = cfg[key]['strobe']
+            else:
+                strobe = False
             self.addLight(Light(name=cfg[key]['name'], outputPin=cfg[key]['outputPin'], enabled=cfg[key]['enabled'],
-                                icon=cfg[key]['icon']))
+                                icon=cfg[key]['icon'], strobe=strobe))
             i += 1
         lcfg.close()
         msg = 'Loaded %s lights from local config file.' % i

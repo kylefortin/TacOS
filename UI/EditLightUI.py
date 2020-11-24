@@ -25,10 +25,11 @@ class EditLightUI(QWidget):
         self.outputPin = kwargs.get('outputPin', 0)
         self.enabled = kwargs.get('enabled', True)
         self.icon = kwargs.get('icon', None)
+        self.strobe = kwargs.get('strobe', False)
         self.index = kwargs.get('index', 0)
         availablePins = kwargs.get('availablePins', Config.outputPinList)
         self._light = Light(name=self.name, outputPin=self.outputPin, enabled=self.enabled,
-                            icon=self.icon)
+                            icon=self.icon, strobe=self.strobe)
         self.title = 'Edit Lighting Element'
         self.layout = QVBoxLayout(self)
         self.layout.setAlignment(Qt.AlignCenter)
@@ -55,6 +56,8 @@ class EditLightUI(QWidget):
             self._iconControl.addItem(icon['name'], key)
             self._iconControl.setItemIcon(self._iconControl.count() - 1, QIcon(icon['path']))
         del key
+        self._strobeControl = QCheckBox('Strobe', self)
+        self._strobeControl.setChecked(self.strobe)
         self._saveBtn = QPushButton('Save', self)
         self._saveBtn.clicked.connect(self.__saveBtnAction)
         self._cancelBtn = QPushButton('Cancel', self)
@@ -63,7 +66,7 @@ class EditLightUI(QWidget):
         layoutList = [
             ['_nameControl'],
             ['_outputPinControlLabel', '_outputPinControl'],
-            ['_enabledControl'],
+            ['_enabledControl', '_strobeControl'],
             ['_iconControlLabel', '_iconControl'],
             ['_saveBtn', '_cancelBtn']
         ]
@@ -81,6 +84,7 @@ class EditLightUI(QWidget):
         self._light.outputPin = int(self._outputPinControl.currentText())
         self._light.enabled = self._enabledControl.isChecked()
         self._light.icon = self._iconControl.currentData()
+        self._light.strobe = self._strobeControl.isChecked()
         if self.parent is not None:
             self.__closeTab()
             self.parent.editLight(self._light, self.index)

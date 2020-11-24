@@ -7,23 +7,24 @@ The main UI for the TacOS environment.  Envelops all other window modules in a d
 
 """
 
-import pickle
-import sys
 import os
-from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout,\
-    QTabWidget, QPushButton, QLabel, QMessageBox
-from AnyQt.QtGui import QIcon
+import pickle
+
 from AnyQt.QtCore import Qt
+from AnyQt.QtGui import QIcon
+from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, \
+    QTabWidget, QPushButton, QLabel
+
 from Objects import Config
-from Objects.I2CBus import I2CBus
 from Objects.CamViewer import CamViewer
+from Objects.I2CBus import I2CBus
 from Objects.Logger import Logger
-from UI.LightControlUI import LightControlUI
 from UI.LightConfigUI import LightConfigUI
-from UI.OBAControlUI import OBAControlUI
+from UI.LightControlUI import LightControlUI
 from UI.OBAConfigUI import OBAConfigUI
-from UI.TracControlUI import TracControlUI
+from UI.OBAControlUI import OBAControlUI
 from UI.TracConfigUI import TracConfigUI
+from UI.TracControlUI import TracControlUI
 from UI.UserPrefUI import UserPrefUI
 
 

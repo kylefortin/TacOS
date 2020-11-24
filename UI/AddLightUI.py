@@ -26,7 +26,7 @@ class AddLightUI(QWidget):
         self.title = 'Create Lighting Element'
         self.layout = QVBoxLayout(self)
         self.setLayout(self.layout)
-        self._light = Light(name='', outputPin=0, enabled=False, icon=Config.faIcon('lightbulb'), momentary=False)
+        self._light = Light(name='', outputPin=0, enabled=False, icon=Config.faIcon('lightbulb'), strobe=False)
         self._nameControl = LineEdit('Name', self)
         self._nameControl.kb.connect(self.showOSK)
         self._outputPinControlLabel = QLabel('Output Pin', self)
@@ -42,6 +42,7 @@ class AddLightUI(QWidget):
             self._iconControl.addItem(icon['name'], key)
             self._iconControl.setItemIcon(self._iconControl.count() - 1, QIcon(icon['path']))
         del key
+        self._strobeControl = QCheckBox('Strobe', self)
         self._addLightBtn = QPushButton('Add Lighting Element', self)
         self._addLightBtn.clicked.connect(self.__createLightBtnAction)
         self._cancelBtn = QPushButton('Cancel', self)
@@ -50,7 +51,7 @@ class AddLightUI(QWidget):
         layoutList = [
             ['_nameControl'],
             ['_outputPinControlLabel', '_outputPinControl'],
-            ['_enabledControl'],
+            ['_enabledControl', '_strobeControl'],
             ['_iconControlLabel', '_iconControl'],
             ['_addLightBtn', '_cancelBtn']
         ]
@@ -68,6 +69,7 @@ class AddLightUI(QWidget):
         self._light.outputPin = int(self._outputPinControl.currentText())
         self._light.enabled = self._enabledControl.isChecked()
         self._light.icon = self._iconControl.currentData()
+        self._light.strobe = self._strobeControl.isChecked()
         if self.parent is not None:
             self.__closeTab()
             self.parent.createLight(self._light)

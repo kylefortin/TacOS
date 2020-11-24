@@ -52,8 +52,7 @@ class OBAControl(QPushButton):
         now = nowMillis(datetime.datetime.now())
         diff = now - self._lastPress
         self._lastPress = now
-        print(diff)
-        if diff <= 1000:
+        if diff <= 500:
             self._block = True
             self.__doublePress()
 

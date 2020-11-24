@@ -22,6 +22,7 @@ class Light(object):
         self._outputPin = int(kwargs.get('outputPin', 0))
         self._enabled = bool(kwargs.get('enabled', True))
         self._icon = kwargs.get('icon', Config.faIcon('lightbulb'))
+        self._strobe = bool(kwargs.get('strobe', False))
 
     @property
     def getInfo(self):
@@ -102,3 +103,20 @@ class Light(object):
             raise ValueError('Value must be supplied for Light name.')
         else:
             self._icon = value
+
+    @property
+    def strobe(self):
+        return self._strobe
+
+    @strobe.setter
+    def strobe(self, value):
+        """
+        Set the strobe property for the Light object.
+        :param value: Whether or not the light should have strobe capability.
+        :type value: bool
+        :return: None
+        """
+        if not isinstance(value, bool):
+            raise TypeError('Value strobe must be type <bool>, given %s' % type(value))
+        else:
+            self._strobe = value
