@@ -29,7 +29,7 @@ class UserPrefUI(QWidget):
 
         # Permanent controls
         self._logger = Logger('userPrefsUI', 'UI : User Preferences')
-        self._closeBtn = QPushButton('Close', self)
+        self._closeBtn = QPushButton('Save', self)
         self._closeBtn.clicked.connect(self.__close)
         self._startMaximized = QCheckBox('Start Maximized', self)
         self._allowDuplicatePins = QCheckBox('Allow Duplicate Output Pins', self)

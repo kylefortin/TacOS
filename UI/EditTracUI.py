@@ -55,6 +55,11 @@ class EditTracUI(QWidget):
             self._iconControl.addItem(icon['name'], key)
             self._iconControl.setItemIcon(self._iconControl.count() - 1, QIcon(icon['path']))
         del key
+        # Set combobox selection to icon variable
+        for iconIdx in range(self._iconControl.count()):
+            if self.icon is not None and self._iconControl.itemData(iconIdx) == self.icon:
+                self._iconControl.setCurrentIndex(iconIdx)
+                break
         self._saveBtn = QPushButton('Save', self)
         self._saveBtn.clicked.connect(self.__saveBtnAction)
         self._cancelBtn = QPushButton('Cancel', self)

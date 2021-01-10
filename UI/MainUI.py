@@ -8,6 +8,7 @@ The main UI for the TacOS environment.  Envelops all other window modules in a d
 """
 
 import os
+import subprocess
 import pickle
 
 from AnyQt.QtCore import Qt
@@ -62,6 +63,8 @@ class MainUI(QWidget):
         del bus, address, debug
 
         # Init control UIs
+        self._UserPrefUI = UserPrefUI(self._prefs, parent=self)
+        self._UserPrefUI.setParent(self)
         self._LightControlUI = LightControlUI(parent=self)
         self._LightControlUI.setParent(self)
         self._OBAControlUI = OBAControlUI(parent=self)
@@ -78,15 +81,16 @@ class MainUI(QWidget):
         self._tabs = QTabWidget(self)
         for key in ['enableOBA', 'enableLighting', 'enableTracControl', 'enableCamViewer']:
             if key not in self._prefs.keys() or self._prefs[key]:
-                title = {'enableOBA': 'OnBoard Air',
+                title = {'enableOBA': 'Air',
                          'enableLighting': 'Lighting',
-                         'enableTracControl': 'Traction Control',
-                         'enableCamViewer': 'Camera Viewer'}[key]
+                         'enableTracControl': 'Traction',
+                         'enableCamViewer': 'Camera'}[key]
                 panel = {'enableOBA': '_OBAControlUI',
                          'enableLighting': '_LightControlUI',
                          'enableTracControl': '_TracControlUI',
                          'enableCamViewer': '_CamViewer'}[key]
                 self._tabs.addTab(eval('self.%s' % panel), title)
+        self._tabs.addTab(self._UserPrefUI, "Config")
         self._tabs.currentChanged.connect(self.__tabChange)
         self.layout.addWidget(self._tabs)
 
@@ -96,18 +100,11 @@ class MainUI(QWidget):
         self.layout.addWidget(self._btnPanel)
 
         # Create Config button
-        self._configBtn = QPushButton('', self)
+        self._configBtn = QPushButton('Configure', self)
         self._configBtn.setFixedHeight(50)
         self._configBtn.setIcon(QIcon(Config.faIcon('cog')))
         self._configBtn.clicked.connect(self.__configBtnAction)
         self._btnPanel.layout.addWidget(self._configBtn)
-
-        # Create User Prefs button
-        self._settingsBtn = QPushButton('User Prefs', self)
-        self._settingsBtn.setIcon(QIcon(Config.faIcon('user-cog')))
-        self._settingsBtn.setFixedHeight(50)
-        self._settingsBtn.clicked.connect(self.__settingsBtnAction)
-        self._btnPanel.layout.addWidget(self._settingsBtn)
 
         # Create Night Mode button
         self._nightMode = QPushButton('', self)
@@ -124,7 +121,7 @@ class MainUI(QWidget):
             self._nightMode.setText('Day Mode')
         self._nightMode.clicked.connect(self.__nightModeBtnAction)
         self._btnPanel.layout.addWidget(self._nightMode)
-        self.toggleNightMode()
+        self.setNightMode(self._prefs['nightMode'])
 
         bottomPanel = QWidget(self)
         bottomPanel.layout = QHBoxLayout(bottomPanel)
@@ -143,32 +140,24 @@ class MainUI(QWidget):
 
     def __tabChange(self):
         if self._CamViewer is not None:
-            if 'Camera Viewer' in self.tabs.tabText(self.tabs.currentIndex()):
+            if 'Camera' in self.tabs.tabText(self.tabs.currentIndex()):
                 self._CamViewer.start()
             else:
                 self._CamViewer.stop()
-
-    def setConfigLabel(self):
-        self._configBtn.setText('Configure ' + self._tabs.tabText(self._tabs.currentIndex()))
+        if 'Config' in self.tabs.tabText(self.tabs.currentIndex()):
+            self.disableConfigButtons()
+        else:
+            self.enableConfigButtons()
 
     def closeEvent(self, event):
         self.__savePrefs()
         self._i2cBus.deEnergizeAll()
 
     def closePrefs(self):
-        for i in range(self.tabs.count()):
-            if 'User Prefs' in self.tabs.tabText(i):
-                self.tabs.removeTab(i)
+        self.__savePrefs()
         self.redrawTracPanel(self._TracControlUI.tracs, False)
         self.redrawLightPanel(self._LightControlUI.lights, False)
-        self.redrawOBAPanel(self._OBAControlUI.obas, True)
-        self.__savePrefs()
-
-    def showEvent(self, event):
-        self.setConfigLabel()
-
-    def paintEvent(self, event):
-        self.setConfigLabel()
+        self.redrawOBAPanel(self._OBAControlUI.obas, False)
 
     def redrawLightPanel(self, lights, setWin=False):
         self._LightControlUI = LightControlUI(parent=self)
@@ -196,12 +185,12 @@ class MainUI(QWidget):
         self._OBAControlUI.setParent(self)
         for i in range(self._tabs.count()):
             self._tabs.setTabEnabled(i, True)
-            if 'OnBoard Air' in self._tabs.tabText(i):
+            if 'Air' in self._tabs.tabText(i):
                 self._tabs.removeTab(i)
                 if i >= self._tabs.count():
-                    self._tabs.addTab(self._OBAControlUI, 'OnBoard Air')
+                    self._tabs.addTab(self._OBAControlUI, 'Air')
                 else:
-                    self._tabs.insertTab(i, self._OBAControlUI, 'OnBoard Air')
+                    self._tabs.insertTab(i, self._OBAControlUI, 'Air')
                 if setWin:
                     self._tabs.setCurrentIndex(i)
                     self.enableConfigButtons()
@@ -217,12 +206,12 @@ class MainUI(QWidget):
         self._TracControlUI.setParent(self)
         for i in range(self._tabs.count()):
             self._tabs.setTabEnabled(i, True)
-            if 'Traction Control' in self._tabs.tabText(i):
+            if 'Traction' in self._tabs.tabText(i):
                 self._tabs.removeTab(i)
                 if i >= self._tabs.count():
-                    self._tabs.addTab(self._TracControlUI, 'Traction Control')
+                    self._tabs.addTab(self._TracControlUI, 'Traction')
                 else:
-                    self._tabs.insertTab(i, self._TracControlUI, 'Traction Control')
+                    self._tabs.insertTab(i, self._TracControlUI, 'Traction')
                 if setWin:
                     self._tabs.setCurrentIndex(i)
                     self.enableConfigButtons()
@@ -278,12 +267,29 @@ class MainUI(QWidget):
         fx(pin)
 
     def disableConfigButtons(self):
-        for control in [self._settingsBtn, self._configBtn]:
+        for control in [self._configBtn]:
             control.setEnabled(False)
 
     def enableConfigButtons(self):
-        for control in [self._settingsBtn, self._configBtn]:
+        for control in [self._configBtn]:
             control.setEnabled(True)
+
+    def setNightMode(self, mode):
+        """
+        Set the display brightness mode.
+        :param mode: The display mode to set (True for day, False for night)
+        :type mode: bool
+        :return: None
+        """
+        _value = {False: Config.dayBright, True: Config.nightBright}[mode]
+        self._nightMode.setIcon({True: QIcon(Config.faIcon('sun')),
+                                 False: QIcon(Config.faIcon('moon'))}
+                                [mode])
+        self._nightMode.setText({True: 'Day Mode', False: 'Night Mode'}[mode])
+        _cmd = "echo %s > /sys/class/backlight/rpi_backlight/brightness" % _value
+        _subProc = subprocess.run(_cmd, shell=True)
+        if _subProc.returncode != 0:
+            self.logger.log('Failed to set night mode: %s' % _subProc.stderr)
 
     def toggleNightMode(self):
         try:
@@ -329,16 +335,6 @@ class MainUI(QWidget):
         i = self._tabs.addTab(ui, 'Configure %s' % tab)
         self._tabs.setCurrentIndex(i)
         self._configBtn.setVisible(False)
-
-    def __settingsBtnAction(self):
-        self.disableConfigButtons()
-        self._PrefsUI = UserPrefUI(self._prefs, parent=self)
-        self._PrefsUI.setParent(self)
-        idx = self._tabs.addTab(self._PrefsUI, 'User Prefs')
-        self._tabs.setCurrentIndex(idx)
-        for i in range(self._tabs.count()):
-            if self._tabs.tabText(i) in ['OnBoard Air', 'Lighting', 'Traction Control']:
-                self._tabs.setTabEnabled(i, False)
 
     def __nightModeBtnAction(self):
         self.toggleNightMode()

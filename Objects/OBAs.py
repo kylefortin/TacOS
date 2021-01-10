@@ -52,7 +52,7 @@ class OBAs(object):
         for key in cfg.keys():
             self.addOBA(
                 OBA(name=cfg[key]['name'], outputPin=cfg[key]['outputPin'], enabled=cfg[key]['enabled'],
-                    icon=cfg[key]['icon']))
+                    icon=cfg[key]['icon'], momentary=cfg[key]['momentary']))
             i += 1
         obacfg.close()
         msg = 'Loaded %s OBA elements from local config file.' % i
