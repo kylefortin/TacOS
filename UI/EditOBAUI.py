@@ -23,6 +23,7 @@ class EditOBAUI(QWidget):
         super(EditOBAUI, self).__init__()
         # Assign keyword arguments
         self.parent = kwargs.get('parent', None)
+        self.window = kwargs.get('window', None)
         self.name = kwargs.get('name', '')
         self.outputPin = kwargs.get('outputPin', 0)
         self.enabled = kwargs.get('enabled', True)
@@ -91,6 +92,7 @@ class EditOBAUI(QWidget):
             panel = QWidget(self)
             panel.layout = QHBoxLayout(panel)
             panel.layout.setAlignment(Qt.AlignCenter)
+            panel.layout.setSpacing(20)
             for ctrl in l:
                 panel.layout.addWidget(eval('self.%s' % ctrl))
             self.layout.addWidget(panel)
@@ -106,23 +108,17 @@ class EditOBAUI(QWidget):
         self._oba.momentary = self._momentaryControl.isChecked()
         if self.parent is not None:
             # Close tab window and execute edit function
-            self.__closeTab()
             self.parent.editOBA(self._oba, self.index)
+        if self.window is not None:
+            self.window.close()
 
     def __cancel(self):
         # Close window
         self.close()
         if self.parent is not None:
-            self.__closeTab()
-
-    def __closeTab(self):
-        # Remove tab from tab strip
-        self.parent.parent.tabs.removeTab(self.parent.parent.tabs.currentIndex())
-        for i in range(self.parent.parent.tabs.count()):
-            # Draw focus back to Configuration tab
-            if 'Configure' in self.parent.parent.tabs.tabText(i):
-                self.parent.parent.tabs.setTabEnabled(i, True)
-                self.parent.parent.tabs.setCurrentIndex(i)
+            self.parent.parent.refreshConfigPanels()
+        if self.window is not None:
+            self.window.close()
 
     def showOSK(self):
         self.window().dock.show()

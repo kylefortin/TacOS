@@ -29,15 +29,17 @@ prefs = data + '/prefs.tacos'
 logFile = data + '/log.tacos'
 
 # Application geometry
-geometry = (100, 100, 800, 600)
+geometry = (100, 100, 800, 480)
 controlWidth = 200
 controlHeight = 100
+menuWidth = 125
+menuHeight = 75
 camHeight = 250
 
 # Global constants
 outputPinList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 busList = ['1', '2']
-lightColumns = 3
+lightColumns = 2
 obaColumns = 2
 tracColumns = 2
 iconSize = 50
@@ -47,6 +49,20 @@ camFrameRate = 30
 strobeRate = 0.5
 
 icons = {
+    'gyro': {
+        'front': {
+            'name': 'Gyro Front View', 'path': graphics + '/Gyro/front.png'
+        },
+        'side': {
+            'name': 'Gyro Side View', 'path': graphics + '/Gyro/side.png'
+        },
+        'rear': {
+            'name': 'Gyro Rear View', 'path': graphics + '/Gyro/rear.png'
+        },
+        'compass': {
+            'name': 'Gyro Compass Graphic', 'path': graphics + '/Gyro/angle.png'
+        }
+    },
     'logos': {
         'logo': {
             'name': 'TacOS Logo', 'path': graphics + '/TacOS.png'
@@ -99,7 +115,7 @@ icons = {
 }
 
 # Version info
-version = '1.5.0'
+version = '1.6.0'
 
 
 def faIcon(name):

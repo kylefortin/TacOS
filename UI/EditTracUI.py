@@ -21,6 +21,7 @@ class EditTracUI(QWidget):
     def __init__(self, **kwargs):
         super(EditTracUI, self).__init__()
         self.parent = kwargs.get('parent', None)
+        self.window = kwargs.get('window', None)
         self.name = kwargs.get('name', '')
         self.outputPin = kwargs.get('outputPin', 0)
         self.enabled = kwargs.get('enabled', True)
@@ -87,20 +88,17 @@ class EditTracUI(QWidget):
         self._trac.enabled = self._enabledControl.isChecked()
         self._trac.icon = self._iconControl.currentData()
         if self.parent is not None:
-            self.__closeTab()
             self.parent.editTrac(self._trac, self.index)
+            self.parent.parent.refreshConfigPanels()
+        if self.window is not None:
+            self.window.close()
 
     def __cancel(self):
         self.close()
         if self.parent is not None:
-            self.__closeTab()
-
-    def __closeTab(self):
-        self.parent.parent.tabs.removeTab(self.parent.parent.tabs.currentIndex())
-        for i in range(self.parent.parent.tabs.count()):
-            if 'Configure' in self.parent.parent.tabs.tabText(i):
-                self.parent.parent.tabs.setTabEnabled(i, True)
-                self.parent.parent.tabs.setCurrentIndex(i)
+            self.parent.parent.refreshConfigPanels()
+        if self.window is not None:
+            self.window.close()
 
     def showOSK(self):
         self.window().dock.show()

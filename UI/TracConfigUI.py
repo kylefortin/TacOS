@@ -9,10 +9,11 @@ Extends the TacOS Tracs class to provide a UI to configure available Trac object
 
 from Objects.Tracs import Tracs
 from Objects.Logger import Logger
+from Objects import Config
 from AnyQt.QtWidgets import QWidget, QTableWidget, \
     QTableWidgetItem, QPushButton, QVBoxLayout, \
     QHBoxLayout, QAbstractItemView, QHeaderView, \
-    QMessageBox
+    QMessageBox, QMainWindow
 from AnyQt.QtCore import Qt, pyqtSignal
 from UI.AddTracUI import AddTracUI
 from UI.EditTracUI import EditTracUI
@@ -138,14 +139,19 @@ class TracConfigUI(QWidget, Tracs):
             sPin = int(self._tracsList.item(sIdx, 1).text())
             sEnable = self._tracsList.item(sIdx, 2).text() != 'False'
             sIcon = self._tracsList.item(sIdx, 3).text()
-            # Disable Config tab
-            self.parent.tabs.setTabEnabled(self.parent.tabs.currentIndex(), False)
+            # Create window to show edit UI
+            win = QMainWindow(self)
             # Create Edit UI and add to tabs
             ui = EditTracUI(name=sName, outputPin=sPin, enabled=sEnable, icon=sIcon,
-                            index=sIdx, availablePins=self.parent.availablePins(sPin), parent=self)
+                            index=sIdx, availablePins=self.parent.availablePins(sPin), parent=self,
+                            window=win)
             ui.setParent(self)
-            i = self.parent.tabs.addTab(ui, 'Edit TracControl Element')
-            self.parent.tabs.setCurrentIndex(i)
+            # Open window in fullscreen
+            win.setCentralWidget(ui)
+            if self.parent.prefs['startMaximized']:
+                win.showFullScreen()
+            else:
+                win.show()
             self.parent.disableConfigButtons()
         else:
             msgBox = QMessageBox()
@@ -158,9 +164,7 @@ class TracConfigUI(QWidget, Tracs):
     def __closeBtnAction(self):
         self.save()
         if self.parent is not None:
-            self.parent.tabs.removeTab(self.parent.tabs.currentIndex())
-            self.parent.redrawTracPanel(self.__formatTrac(), True)
-            self.parent._configBtn.setVisible(True)
+            self.parent.redrawTracPanel("Traction", self.__formatTrac())
 
     def __formatTrac(self):
         i = 0

@@ -14,9 +14,10 @@ import pickle
 from AnyQt.QtCore import Qt
 from AnyQt.QtGui import QIcon
 from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, \
-    QTabWidget, QPushButton, QLabel
+    QPushButton, QLabel, QFrame, QScrollArea
 
 from Objects import Config
+from Objects.MenuButton import MenuButton
 from Objects.CamViewer import CamViewer
 from Objects.I2CBus import I2CBus
 from Objects.Logger import Logger
@@ -27,6 +28,7 @@ from UI.OBAControlUI import OBAControlUI
 from UI.TracConfigUI import TracConfigUI
 from UI.TracControlUI import TracControlUI
 from UI.UserPrefUI import UserPrefUI
+from UI.Gyro import Gyrometer
 
 
 class MainUI(QWidget):
@@ -37,7 +39,7 @@ class MainUI(QWidget):
         self.top = Config.geometry[1]
         self.width = Config.geometry[2]
         self.height = Config.geometry[3]
-        self.layout = QVBoxLayout(self)
+        self.layout = QHBoxLayout(self)
 
         # Init logger
         self._logger = Logger('mainUI', 'UI : Main')
@@ -62,6 +64,62 @@ class MainUI(QWidget):
         self._i2cBus = I2CBus(int(bus), str(address), debug)
         del bus, address, debug
 
+        # Create menu frame
+        self._sidebarMenu = QFrame(self)
+        self._sidebarMenu.layout = QVBoxLayout(self._sidebarMenu)
+        self._sidebarMenu.setMaximumWidth(Config.menuWidth + 50)
+        self._sidebarMenu.setMaximumHeight(Config.geometry[3])
+        self._sidebarMenu.setStyleSheet("QFrame{border-right: 1px solid black}")
+
+        # Create menu
+        container = QWidget()
+        container.layout = QVBoxLayout()
+        container.setLayout(container.layout)
+        scrollArea = QScrollArea()
+        scrollArea.setWidget(container)
+        scrollArea.setWidgetResizable(True)
+        self._sidebarMenu.layout.addWidget(scrollArea)
+        for key in ['enableOBA', 'enableLighting', 'enableTracControl', 'enableCamViewer', 'enableGyro']:
+            if key not in self._prefs.keys() or self._prefs[key]:
+                title = {'enableOBA': 'Air',
+                         'enableLighting': 'Lighting',
+                         'enableTracControl': 'Traction',
+                         'enableCamViewer': 'Camera',
+                         'enableGyro': 'Gyro'}[key]
+                icon = {'enableOBA': Config.faIcon("wind"),
+                        'enableLighting': Config.faIcon("lightbulb"),
+                        'enableTracControl': Config.icon("tracControl", "rearDiff")['path'],
+                        'enableCamViewer': Config.faIcon("camera"),
+                        'enableGyro': Config.faIcon("truck-pickup")}[key]
+                button = MenuButton(panel=title, parent=self)
+                button.setIcon(QIcon(icon))
+                container.layout.addWidget(button)
+        settingsButton = MenuButton(panel="Settings", parent=self)
+        settingsButton.setIcon(QIcon(Config.faIcon("user-cog")))
+        container.layout.addWidget(settingsButton)
+
+        # Create version info label
+        self._versionInfo = QLabel('v%s' % Config.version, self)
+        self._versionInfo.setAlignment(Qt.AlignCenter)
+        self._versionInfo.setFixedWidth(Config.menuWidth)
+        self._versionInfo.setStyleSheet("QLabel{border: none}")
+        self._sidebarMenu.layout.addWidget(self._versionInfo)
+
+        # Create OSK button
+        self._oskShow = QPushButton('', self)
+        self._oskShow.setIcon(QIcon(Config.faIcon('keyboard')))
+        self._oskShow.setFixedWidth(Config.menuWidth)
+        self._oskShow.clicked.connect(self.__showOSK)
+        self._sidebarMenu.layout.addWidget(self._oskShow)
+
+        # Add menu frame to main UI
+        self.layout.addWidget(self._sidebarMenu)
+
+        # Create main UI panel
+        self._UIPanel = QWidget(self)
+        self._UIPanel.layout = QVBoxLayout(self._UIPanel)
+        self.layout.addWidget(self._UIPanel)
+
         # Init control UIs
         self._UserPrefUI = UserPrefUI(self._prefs, parent=self)
         self._UserPrefUI.setParent(self)
@@ -75,29 +133,42 @@ class MainUI(QWidget):
             self._CamViewer = CamViewer(0)
             self._CamViewer.setParent(self)
         except Exception as e:
-            self._CamViewer = None
+            self._CamViewer = QWidget(self)
+        self._Gyro = Gyrometer(parent=self)
 
-        # Create tab strip
-        self._tabs = QTabWidget(self)
-        for key in ['enableOBA', 'enableLighting', 'enableTracControl', 'enableCamViewer']:
-            if key not in self._prefs.keys() or self._prefs[key]:
-                title = {'enableOBA': 'Air',
-                         'enableLighting': 'Lighting',
-                         'enableTracControl': 'Traction',
-                         'enableCamViewer': 'Camera'}[key]
-                panel = {'enableOBA': '_OBAControlUI',
-                         'enableLighting': '_LightControlUI',
-                         'enableTracControl': '_TracControlUI',
-                         'enableCamViewer': '_CamViewer'}[key]
-                self._tabs.addTab(eval('self.%s' % panel), title)
-        self._tabs.addTab(self._UserPrefUI, "Config")
-        self._tabs.currentChanged.connect(self.__tabChange)
-        self.layout.addWidget(self._tabs)
+        # Init config UIs
+        self._LightConfigUI = LightConfigUI(parent=self)
+        self._OBAConfigUI = OBAConfigUI(parent=self)
+        self._TracConfigUI = TracConfigUI(parent=self)
+
+        # UI map
+        self.UIMap = {
+            "Air": self._OBAControlUI,
+            "Lighting": self._LightControlUI,
+            "Traction": self._TracControlUI,
+            "Camera": self._CamViewer,
+            "Gyro": self._Gyro,
+            "Settings": self._UserPrefUI
+        }
+
+        # Control UI map
+        self.ConfigUIMap = {
+            "Air": self._OBAConfigUI,
+            "Lighting": self._LightConfigUI,
+            "Traction": self._TracConfigUI
+        }
+
+        # Add UIs to main panel and hide
+        for obj in [self._OBAControlUI, self._TracControlUI, self._LightControlUI,
+                    self._CamViewer, self._UserPrefUI, self._Gyro,
+                    self._OBAConfigUI, self._LightConfigUI, self._TracConfigUI]:
+            self._UIPanel.layout.addWidget(obj)
+            obj.hide()
 
         # Create button panel
         self._btnPanel = QWidget(self)
         self._btnPanel.layout = QHBoxLayout(self._btnPanel)
-        self.layout.addWidget(self._btnPanel)
+        self._UIPanel.layout.addWidget(self._btnPanel)
 
         # Create Config button
         self._configBtn = QPushButton('Configure', self)
@@ -105,6 +176,17 @@ class MainUI(QWidget):
         self._configBtn.setIcon(QIcon(Config.faIcon('cog')))
         self._configBtn.clicked.connect(self.__configBtnAction)
         self._btnPanel.layout.addWidget(self._configBtn)
+
+        # Set initial UI
+        for key in ['enableOBA', 'enableLighting', 'enableTracControl', 'enableCamViewer']:
+            if key in self._prefs.keys():
+                if self._prefs[key]:
+                    panel = {'enableOBA': self._OBAControlUI,
+                             'enableLighting': self._LightControlUI,
+                             'enableTracControl': self._TracControlUI,
+                             'enableCamViewer': self._CamViewer}[key]
+                    panel.show()
+                    break
 
         # Create Night Mode button
         self._nightMode = QPushButton('', self)
@@ -123,31 +205,40 @@ class MainUI(QWidget):
         self._btnPanel.layout.addWidget(self._nightMode)
         self.setNightMode(self._prefs['nightMode'])
 
-        bottomPanel = QWidget(self)
-        bottomPanel.layout = QHBoxLayout(bottomPanel)
-        bottomPanel.layout.addWidget(QWidget(self))
-        # Create version info label
-        self._versionInfo = QLabel('v%s' % Config.version, self)
-        bottomPanel.layout.addWidget(self._versionInfo)
-        bottomPanel.layout.setAlignment(Qt.AlignCenter)
-        # Create OSK button
-        self._oskShow = QPushButton('', self)
-        self._oskShow.setIcon(QIcon(Config.faIcon('keyboard')))
-        self._oskShow.setFixedWidth(100)
-        self._oskShow.clicked.connect(self.__showOSK)
-        bottomPanel.layout.addWidget(self._oskShow)
-        self.layout.addWidget(bottomPanel)
-
-    def __tabChange(self):
-        if self._CamViewer is not None:
-            if 'Camera' in self.tabs.tabText(self.tabs.currentIndex()):
-                self._CamViewer.start()
-            else:
-                self._CamViewer.stop()
-        if 'Config' in self.tabs.tabText(self.tabs.currentIndex()):
-            self.disableConfigButtons()
+    def setUIPanel(self, panel):
+        for key, value in self.ConfigUIMap.items():
+            value.hide()
+        for key, value in self.UIMap.items():
+            value.hide()
+        self.UIMap[panel].show()
+        if panel == "Camera":
+            self._CamViewer.start()
         else:
-            self.enableConfigButtons()
+            self._CamViewer.stop()
+        if panel == "Gyro":
+            self._Gyro.startSerial()
+            self._Gyro.startRotation()
+        else:
+            self._Gyro.stopSerial()
+            self._Gyro.stopRotation()
+
+    def refreshConfigPanels(self):
+        self._OBAConfigUI = OBAConfigUI(parent=self)
+        self._LightConfigUI = LightConfigUI(parent=self)
+        self._TracConfigUI = TracConfigUI(parent=self)
+
+    def showConfigPanel(self):
+        self.refreshConfigPanels()
+        self.disableConfigButtons()
+        self.configBtn.hide()
+        for ui in [self._TracConfigUI, self._OBAConfigUI, self._LightConfigUI]:
+            ui.hide()
+        self.ConfigUIMap[self.currentUIPanel()].show()
+
+    def currentUIPanel(self):
+        for key, value in self.UIMap.items():
+            if value.isVisible():
+                return key
 
     def closeEvent(self, event):
         self.__savePrefs()
@@ -159,22 +250,27 @@ class MainUI(QWidget):
         self.redrawLightPanel(self._LightControlUI.lights, False)
         self.redrawOBAPanel(self._OBAControlUI.obas, False)
 
+    def closeConfig(self, config, obj):
+        if config == "Lighting":
+            self.redrawLightPanel(obj, False)
+        elif config == "Air:":
+            self.redrawOBAPanel(obj, False)
+        elif config == "Traction":
+            self.redrawTracPanel(obj, False)
+        for configUI in self.ConfigUIMap.values():
+            configUI.hide()
+        self.UIMap[config].show()
+        self.configBtn.show()
+        self.enableConfigButtons()
+
     def redrawLightPanel(self, lights, setWin=False):
         self._LightControlUI = LightControlUI(parent=self)
         self._LightControlUI.setParent(self)
-        for i in range(self._tabs.count()):
-            self._tabs.setTabEnabled(i, True)
-            if 'Lighting' in self._tabs.tabText(i):
-                self._tabs.removeTab(i)
-                if i >= self._tabs.count():
-                    self._tabs.addTab(self._LightControlUI, 'Lighting')
-                else:
-                    self._tabs.insertTab(i, self._LightControlUI, 'Lighting')
-                if setWin:
-                    self._tabs.setCurrentIndex(i)
-                    self.enableConfigButtons()
-        if not setWin:
-            self.disableConfigButtons()
+        if setWin:
+            self.setUIPanel("Lighting")
+            self.enableConfigButtons()
+        # if not setWin:
+        #     self.disableConfigButtons()
         for key in lights:
             if lights[key]['active']:
                 control = eval('self._LightControlUI._%s' % key)
@@ -183,19 +279,11 @@ class MainUI(QWidget):
     def redrawOBAPanel(self, obas, setWin=False):
         self._OBAControlUI = OBAControlUI(parent=self)
         self._OBAControlUI.setParent(self)
-        for i in range(self._tabs.count()):
-            self._tabs.setTabEnabled(i, True)
-            if 'Air' in self._tabs.tabText(i):
-                self._tabs.removeTab(i)
-                if i >= self._tabs.count():
-                    self._tabs.addTab(self._OBAControlUI, 'Air')
-                else:
-                    self._tabs.insertTab(i, self._OBAControlUI, 'Air')
-                if setWin:
-                    self._tabs.setCurrentIndex(i)
-                    self.enableConfigButtons()
-        if not setWin:
-            self.disableConfigButtons()
+        if setWin:
+            self.setUIPanel("Air")
+            self.enableConfigButtons()
+        # if not setWin:
+        #     self.disableConfigButtons()
         for key in obas:
             if obas[key]['active']:
                 control = eval('self._OBAControlUI._%s' % key)
@@ -204,19 +292,11 @@ class MainUI(QWidget):
     def redrawTracPanel(self, tracs, setWin=False):
         self._TracControlUI = TracControlUI(parent=self)
         self._TracControlUI.setParent(self)
-        for i in range(self._tabs.count()):
-            self._tabs.setTabEnabled(i, True)
-            if 'Traction' in self._tabs.tabText(i):
-                self._tabs.removeTab(i)
-                if i >= self._tabs.count():
-                    self._tabs.addTab(self._TracControlUI, 'Traction')
-                else:
-                    self._tabs.insertTab(i, self._TracControlUI, 'Traction')
-                if setWin:
-                    self._tabs.setCurrentIndex(i)
-                    self.enableConfigButtons()
-        if not setWin:
-            self.disableConfigButtons()
+        if setWin:
+            self.setUIPanel("Traction")
+            self.enableConfigButtons()
+        # if not setWin:
+        #     self.disableConfigButtons()
         for key in tracs:
             if tracs[key]['active']:
                 control = eval('self._TracControlUI._%s' % key)
@@ -320,21 +400,14 @@ class MainUI(QWidget):
         pPrefs.close()
 
     def __configBtnAction(self):
-        tab = self._tabs.tabText(self._tabs.currentIndex())
-        self.disableConfigButtons()
-        if 'OnBoard Air' in tab:
-            ui = OBAConfigUI(parent=self)
-        elif 'Lighting' in tab:
-            ui = LightConfigUI(parent=self)
-        else:
-            ui = TracConfigUI(parent=self)
-        ui.setParent(self)
-        # Disable other tabs
-        for i in range(self.tabs.count()):
-            self.tabs.setTabEnabled(i, False)
-        i = self._tabs.addTab(ui, 'Configure %s' % tab)
-        self._tabs.setCurrentIndex(i)
-        self._configBtn.setVisible(False)
+        currentUI = self.currentUIPanel()
+        if currentUI not in ['Camera', 'Gyro']:
+            self.disableConfigButtons()
+            # Hide UI
+            self.UIMap[currentUI].hide()
+            # Show config UI
+            self.ConfigUIMap[currentUI].show()
+            self._configBtn.setVisible(False)
 
     def __nightModeBtnAction(self):
         self.toggleNightMode()
@@ -358,16 +431,8 @@ class MainUI(QWidget):
         return self._TracControlUI
 
     @property
-    def lightDisplayWidget(self):
-        return self._lightDisplayWidget
-
-    @property
-    def obaDisplayWidget(self):
-        return self._obaDisplayWidget
-
-    @property
-    def tracDisplayWidget(self):
-        return self._tracDisplayWidget
+    def UIPanel(self):
+        return self._UIPanel
 
     @property
     def logger(self):

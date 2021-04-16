@@ -12,7 +12,7 @@ from Objects.Logger import Logger
 from AnyQt.QtWidgets import QWidget, QTableWidget, \
     QTableWidgetItem, QPushButton, QVBoxLayout, \
     QHBoxLayout, QAbstractItemView, QHeaderView, \
-    QMessageBox
+    QMessageBox, QMainWindow
 from AnyQt.QtCore import Qt, pyqtSignal
 from UI.AddOBAUI import AddOBAUI
 from UI.EditOBAUI import EditOBAUI
@@ -161,6 +161,7 @@ class OBAConfigUI(QWidget, OBAs):
     def __editOBA(self):
         # Get selected index
         sIdx = self._obaList.currentIndex().row()
+        print(sIdx)
         if sIdx not in [None, -1]:
             # Read selected row attributes
             sName = self._obaList.item(sIdx, 0).text()
@@ -168,15 +169,18 @@ class OBAConfigUI(QWidget, OBAs):
             sMom = self._obaList.item(sIdx, 2).text() == 'True'
             sEnable = self._obaList.item(sIdx, 3).text() == 'True'
             sIcon = self._obaList.item(sIdx, 4).text()
-            # Disable Config tab
-            self.parent.tabs.setTabEnabled(self.parent.tabs.currentIndex(), False)
+            # Create window to show edit UI
+            win = QMainWindow(self)
             # Create Edit UI and add to tabs
             ui = EditOBAUI(name=sName, outputPin=sPin, enabled=sEnable, icon=sIcon,
                            momentary=sMom, index=sIdx, availablePins=self.parent.availablePins(sPin),
-                           parent=self)
+                           parent=self, window=win)
             ui.setParent(self)
-            i = self.parent.tabs.addTab(ui, 'Edit OnBoard Air Element')
-            self.parent.tabs.setCurrentIndex(i)
+            win.setCentralWidget(ui)
+            if self.parent.prefs['startMaximized']:
+                win.showFullScreen()
+            else:
+                win.show()
             self.parent.disableConfigButtons()
         else:
             # Show error message
@@ -191,11 +195,7 @@ class OBAConfigUI(QWidget, OBAs):
         # Save configured OBAs
         self.save()
         if self.parent is not None:
-            # Remove Config UI from tab strip
-            self.parent.tabs.removeTab(self.parent.tabs.currentIndex())
-            # Refresh Control UI
-            self.parent.redrawOBAPanel(self.__formatOBA(), True)
-            self.parent._configBtn.setVisible(True)
+            self.parent.closeConfig("Air", self.__formatOBA())
 
     def __formatOBA(self):
         i = 0

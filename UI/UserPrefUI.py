@@ -7,11 +7,10 @@ The user preferences UI for the TacOS environment.  Allows setting of persistent
 
 """
 
-import pyforms
 from AnyQt.QtWidgets import QWidget
 from AnyQt.QtWidgets import QCheckBox, QPushButton
 from AnyQt.QtWidgets import QLabel, QComboBox
-from AnyQt.QtWidgets import QLineEdit, QHBoxLayout, QVBoxLayout
+from AnyQt.QtWidgets import QLineEdit, QHBoxLayout, QVBoxLayout, QScrollArea, QGroupBox
 from AnyQt.QtCore import Qt
 from Objects.Logger import Logger
 from Objects import Config
@@ -27,6 +26,17 @@ class UserPrefUI(QWidget):
         self.setLayout(self.layout)
         self._parent = parent
 
+        # Set up container
+        container = QWidget()
+        container.layout = QVBoxLayout()
+        container.setLayout(container.layout)
+
+        # Set up scroll area
+        scrollArea = QScrollArea()
+        scrollArea.setWidget(container)
+        scrollArea.setWidgetResizable(True)
+        self.layout.addWidget(scrollArea)
+
         # Permanent controls
         self._logger = Logger('userPrefsUI', 'UI : User Preferences')
         self._closeBtn = QPushButton('Save', self)
@@ -37,6 +47,7 @@ class UserPrefUI(QWidget):
         self._enableLighting = QCheckBox('Lighting', self)
         self._enableTracControl = QCheckBox('Traction Control', self)
         self._enableCamViewer = QCheckBox('Camera Viewer', self)
+        self._enableGyro = QCheckBox('Inclinometer', self)
         self._panelLabel = QLabel(
             '<html><center>Enable Modules:<br>\
             <em>Restart TacOS for changes to take effect.</em></center></html>', self
@@ -61,11 +72,13 @@ class UserPrefUI(QWidget):
 
         # Set initial values
         for control in ['startMaximized', 'allowDuplicatePins', 'enableOBA',
-                        'enableLighting', 'enableTracControl', 'enableCamViewer', 'i2cDebug', 'debugLogging']:
+                        'enableLighting', 'enableTracControl', 'enableCamViewer', 'enableGyro',
+                        'i2cDebug', 'debugLogging']:
             if control in prefs.keys():
                 exec('self._%s.setChecked(prefs["%s"])' % (control, control))
             else:
-                if control in ['enableOBA', 'enableLighting', 'enableTracControl', 'enableCamViewer']:
+                if control in ['enableOBA', 'enableLighting', 'enableTracControl',
+                               'enableCamViewer', 'enableGyro']:
                     exec('self._%s.setChecked(True)' % control)
                 else:
                     exec('self._%s.setChecked(False)' % control)
@@ -81,7 +94,8 @@ class UserPrefUI(QWidget):
         layoutList = [
             ['_startMaximized', '_allowDuplicatePins', '_debugLogging'],
             ['_panelLabel'],
-            ['_enableOBA', '_enableLighting', '_enableTracControl', '_enableCamViewer'],
+            ['_enableOBA', '_enableLighting', '_enableTracControl'],
+            ['_enableCamViewer', '_enableGyro'],
             ['_i2cLabel'],
             ['_i2cBusLabel', '_i2cBus', '_i2cAddress'],
             ['_i2cDebugLabel'],
@@ -91,10 +105,12 @@ class UserPrefUI(QWidget):
         for i in layoutList:
             panel = QWidget()
             panel.layout = QHBoxLayout(panel)
+            panel.layout.setSpacing(20)
             panel.layout.setAlignment(Qt.AlignCenter)
+            panel.setLayout(panel.layout)
             for c in i:
                 panel.layout.addWidget(eval('self.%s' % c))
-            self.layout.addWidget(panel)
+            container.layout.addWidget(panel)
 
     def refresh(self):
         self.__init__(self.window().prefs, self._parent)
@@ -119,11 +135,12 @@ class UserPrefUI(QWidget):
             'enableOBA': self._enableOBA.isChecked(),
             'enableLighting': self._enableLighting.isChecked(),
             'enableTracControl': self._enableTracControl.isChecked(),
+            'enableCamViewer': self._enableCamViewer.isChecked(),
+            'enableGryo': self._enableGyro.isChecked(),
             'i2cBus': self._i2cBus.currentText(),
             'i2cAddress': hex(int(self._i2cAddress.text(), 16)),
             'i2cDebug': self._i2cDebug.isChecked(),
-            'debugLogging': self._debugLogging.isChecked(),
-            'enableCamViewer': self._enableCamViewer.isChecked()
+            'debugLogging': self._debugLogging.isChecked()
         }
 
     @property
