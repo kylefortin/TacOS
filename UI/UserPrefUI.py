@@ -15,32 +15,34 @@ from AnyQt.QtCore import Qt
 from Objects.Logger import Logger
 from Objects import Config
 import sys
+import os
 
 
 class UserPrefUI(QWidget):
 
-    def __init__(self, prefs, parent=None):
+    def __init__(self, prefs, parent):
         super(UserPrefUI, self).__init__()
         self.title = 'User Preferences'
-        self.layout = QVBoxLayout(self)
-        self.setLayout(self.layout)
-        self._parent = parent
+        self.setLayout(QVBoxLayout(self))
+        self.parent = parent
+        self.prefs = prefs
+
+        # Init logger
+        self.logger = Logger('userPrefsUI', 'UI : User Preferences')
 
         # Set up container
         container = QWidget()
-        container.layout = QVBoxLayout()
-        container.setLayout(container.layout)
+        container.setLayout(QVBoxLayout())
 
         # Set up scroll area
         scrollArea = QScrollArea()
         scrollArea.setWidget(container)
         scrollArea.setWidgetResizable(True)
-        self.layout.addWidget(scrollArea)
+        self.layout().addWidget(scrollArea)
 
         # Permanent controls
-        self._logger = Logger('userPrefsUI', 'UI : User Preferences')
-        self._closeBtn = QPushButton('Save', self)
-        self._closeBtn.clicked.connect(self.__close)
+        self._saveButton = QPushButton('Save', self)
+        self._saveButton.clicked.connect(self.__save)
         self._startMaximized = QCheckBox('Start Maximized', self)
         self._allowDuplicatePins = QCheckBox('Allow Duplicate Output Pins', self)
         self._enableOBA = QCheckBox('OnBoard Air', self)
@@ -67,8 +69,8 @@ class UserPrefUI(QWidget):
             Restart TacOS for changes to take effect.</em></center></html>', self
         )
         self._debugLogging = QCheckBox('Enable Debug Logs', self)
-        self._exitBtn = QPushButton('Exit TacOS', self)
-        self._exitBtn.clicked.connect(self.__exit)
+        self._restartButton = QPushButton('Restart TacOS', self)
+        self._restartButton.clicked.connect(self.__restart)
 
         # Set initial values
         for control in ['startMaximized', 'allowDuplicatePins', 'enableOBA',
@@ -100,64 +102,43 @@ class UserPrefUI(QWidget):
             ['_i2cBusLabel', '_i2cBus', '_i2cAddress'],
             ['_i2cDebugLabel'],
             ['_i2cDebug'],
-            ['_closeBtn', '_exitBtn']
+            ['_saveButton', '_restartButton']
         ]
         for i in layoutList:
             panel = QWidget()
-            panel.layout = QHBoxLayout(panel)
-            panel.layout.setSpacing(20)
-            panel.layout.setAlignment(Qt.AlignCenter)
-            panel.setLayout(panel.layout)
+            panel.setLayout(QHBoxLayout(panel))
+            panel.layout().setSpacing(20)
+            panel.layout().setAlignment(Qt.AlignCenter)
             for c in i:
-                panel.layout.addWidget(eval('self.%s' % c))
-            container.layout.addWidget(panel)
+                panel.layout().addWidget(eval('self.%s' % c))
+            container.layout().addWidget(panel)
 
     def refresh(self):
-        self.__init__(self.window().prefs, self._parent)
+        self.__init__(self.window().prefs, self.parent)
 
-    def __close(self):
-        if self._parent is not None:
-            self._parent.prefs = self.__getPrefs()
-            self._parent.closePrefs()
+    def __save(self):
+        self.parent.prefs = self.__getPrefs()
+        self.parent.savePrefs()
 
-    def __exit(self):
+    def __restart(self):
+        os.system("sudo sh /home/pi/TacOS/launcher.sh")
         sys.exit()
 
     def __getPrefs(self):
-        """
-        Get preferences from UI form.
-        :return: User preferences to store.
-        :rtype: dict
-        """
-        return {
+        _updates = {
             'startMaximized': self._startMaximized.isChecked(),
             'allowDuplicatePins': self._allowDuplicatePins.isChecked(),
             'enableOBA': self._enableOBA.isChecked(),
             'enableLighting': self._enableLighting.isChecked(),
             'enableTracControl': self._enableTracControl.isChecked(),
             'enableCamViewer': self._enableCamViewer.isChecked(),
-            'enableGryo': self._enableGyro.isChecked(),
+            'enableGyro': self._enableGyro.isChecked(),
             'i2cBus': self._i2cBus.currentText(),
             'i2cAddress': hex(int(self._i2cAddress.text(), 16)),
             'i2cDebug': self._i2cDebug.isChecked(),
             'debugLogging': self._debugLogging.isChecked()
         }
+        for _key in _updates.keys():
+            self.prefs[_key] = _updates[_key]
+        return self.prefs
 
-    @property
-    def logger(self):
-        return self._logger
-
-    @logger.setter
-    def logger(self, name='', title=''):
-        """
-        Set the internal logger name and title
-        :param name: The backend name of the logger.
-        :type name: str
-        :param title: The display title of the logger.
-        :type title: str
-        :return: None
-        """
-        if name != '':
-            self._logger.name = name
-        if title != '':
-            self._logger.title = title

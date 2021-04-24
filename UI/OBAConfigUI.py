@@ -7,7 +7,6 @@ Extends the TacOS Lights class to provide a UI to configure available Light obje
 
 """
 
-from Objects.OBAs import OBAs
 from Objects.Logger import Logger
 from AnyQt.QtWidgets import QWidget, QTableWidget, \
     QTableWidgetItem, QPushButton, QVBoxLayout, \
@@ -18,172 +17,83 @@ from UI.AddOBAUI import AddOBAUI
 from UI.EditOBAUI import EditOBAUI
 
 
-class OBAConfigUI(QWidget, OBAs):
-    # Init keyPress signal
+class OBAConfigUI(QWidget):
     keyPressed = pyqtSignal(int)
 
-    def __init__(self, parent=None):
-        # Init parent class
+    def __init__(self, obas, parent):
         super(OBAConfigUI, self).__init__()
-        # Set parent
-        self.parent = parent
-        # Connect key press function
-        self.keyPressed.connect(self.__onKey)
-        # Set window title
         self.title = 'OnBoard Air Configuration'
-        # Set window layout
-        self.layout = QVBoxLayout(self)
-        self.layout.setAlignment(Qt.AlignCenter)
-        self.setLayout(self.layout)
-        # Init log
-        self._logger = Logger('obaConfig', "UI : OBAConfig")
-        # Init row add button
+        self.setLayout(QVBoxLayout(self))
+        self.layout().setAlignment(Qt.AlignCenter)
+        self.parent = parent
+        self.obas = obas
+
+        # Init logger
+        self.logger = Logger('obaConfig', "UI : OBAConfig")
+
+        # Create layout
         self._plus = QPushButton('+', self)
         self._plus.clicked.connect(self.__createOBA)
-        # Init row delete button
         self._minus = QPushButton('-', self)
         self._minus.clicked.connect(self.__destroyOBA)
-        # Init window panel
-        panel = QWidget(self)
-        panel.layout = QHBoxLayout(panel)
-        panel.layout.setAlignment(Qt.AlignRight)
-        panel.layout.addWidget(self._plus)
-        panel.layout.addWidget(self._minus)
-        self.layout.addWidget(panel)
-        # Init table
+        _panel = QWidget(self)
+        _panel.layout = QHBoxLayout(_panel)
+        _panel.layout.setAlignment(Qt.AlignRight)
+        _panel.layout.addWidget(self._plus)
+        _panel.layout.addWidget(self._minus)
+        self.layout().addWidget(_panel)
         self._obaList = QTableWidget(0, 5, self)
         self._obaList.setSelectionBehavior(QAbstractItemView.SelectRows)
         self._obaList.setHorizontalHeaderLabels(['Name', 'Output Pin', 'Momentary', 'Enabled', 'Icon'])
         self._obaList.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.layout.addWidget(self._obaList)
-        # Init edit button
+        self.keyPressed.connect(self.__onKey)
+        self.layout().addWidget(self._obaList)
         self._editBtn = QPushButton('Edit', self)
         self._editBtn.clicked.connect(self.__editOBA)
-        self.layout.addWidget(self._editBtn)
-        # Init close button
+        self.layout().addWidget(self._editBtn)
         self._closeBtn = QPushButton('Close', self)
         self._closeBtn.clicked.connect(self.__closeBtnAction)
-        self.layout.addWidget(self._closeBtn)
-        # Load config files
-        self.load()
-        # Log message
-        msg = 'TacOS OBAConfig UI initialized successfully'
-        self._logger.log(msg)
+        self.layout().addWidget(self._closeBtn)
+
+        # Populate table
+        for _oba in self.obas:
+            _i = self._obaList.rowCount()
+            self._obaList.setRowCount(_i + 1)
+            for _c, _item in enumerate([_oba.name, str(_oba.outputPin),
+                                        str(_oba.enabled), _oba.icon, str(_oba.momentary)]):
+                _tblItem = QTableWidgetItem(_item)
+                _tblItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                self._obaList.setItem(_i, _c, _tblItem)
 
     def keyPressEvent(self, event):
-        # Execute parent function and re-emit event
         super(OBAConfigUI, self).keyPressEvent(event)
         self.keyPressed.emit(event.key())
 
-    def refresh(self):
-        # Re-init object
-        self.__init__(parent=self.parent)
-
-    def addOBA(self, oba):
-        # Execute parent function
-        super(OBAConfigUI, self).addOBA(oba)
-        # Insert OBA object into table
-        idx = self._obaList.rowCount()
-        self._obaList.setRowCount(idx + 1)
-        self.__setRow(idx, oba)
-
-    def editOBA(self, oba, idx):
-        # Execute parent function
-        super(OBAConfigUI, self).editOBA(oba, idx)
-        # Edit list row
-        self.__editRow(idx, oba)
-
-    def createOBA(self, oba):
-        # Execute parent function
-        super(OBAConfigUI, self).createOBA(oba)
-        # Add row to table
-        idx = self._obaList.rowCount()
-        self._obaList.setRowCount(idx + 1)
-        self.__setRow(idx, oba)
-
-    def rmOBA(self, index):
-        # Execute parent function
-        super(OBAConfigUI, self).rmOBA(index)
-        # Remove row from table
-        self._obaList.removeRow(index)
-
     def __onKey(self, key):
         if key == Qt.Key_Escape:
-            # Clear table row selection on ESC
             self._obaList.clearSelection()
 
-    def __setRow(self, idx, oba):
-        # Loop through columns and set values
-        c = 0
-        for item in [oba.name, str(oba.outputPin), str(oba.momentary),
-                     str(oba.enabled), oba.icon]:
-            tableItem = QTableWidgetItem(item)
-            tableItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-            self._obaList.setItem(idx, c, tableItem)
-            c += 1
-
-    def __editRow(self, idx, oba):
-        # Map of column index, values
-        map = {
-            0: oba.name,
-            1: str(oba.outputPin),
-            2: str(oba.momentary),
-            3: str(oba.enabled),
-            4: oba.icon
-        }
-        # Loop through map and set column values
-        for col in map.keys():
-            tableItem = self._obaList.item(idx, col)
-            tableItem.setText(map[col])
-
     def __createOBA(self):
-        # Create Add OBA UI and add to tab strip
-        ui = AddOBAUI(availablePins=self.parent.availablePins(), parent=self)
-        ui.setParent(self)
-        i = self.parent.tabs.addTab(ui, 'Create OnBoard Air Element')
-        self.parent.tabs.setCurrentIndex(i)
-        # Disable config buttons
-        self.parent.disableConfigButtons()
+        self.parent.loadUI('create_oba')
 
     def __destroyOBA(self):
-        # Get selected row indices
-        rows = self._obaList.selectedIndexes()
-        # Init and populate list of selected names
-        names = []
-        for i in rows:
-            names.append(self._obaList.item(i.row(), 0))
-        # Loop through selected names and destroy matching OBA objects
-        for name in names:
-            for n in range(self._obaList.rowCount()):
-                if self._obaList.item(n, 0) == name:
-                    self.rmOBA(n)
+        items = self._obaList.selectedIndexes()
+        rows = []
+        for i in items:
+            if i.row() not in rows:
+                rows.append(i.row())
+        rows.sort(reverse=True)
+        for row in rows:
+            self.parent.obas.rmOBA(row)
+        self.parent.obas.save()
+        self.parent.loadUI('config_oba')
 
     def __editOBA(self):
-        # Get selected index
         sIdx = self._obaList.currentIndex().row()
-        print(sIdx)
         if sIdx not in [None, -1]:
-            # Read selected row attributes
-            sName = self._obaList.item(sIdx, 0).text()
-            sPin = int(self._obaList.item(sIdx, 1).text())
-            sMom = self._obaList.item(sIdx, 2).text() == 'True'
-            sEnable = self._obaList.item(sIdx, 3).text() == 'True'
-            sIcon = self._obaList.item(sIdx, 4).text()
-            # Create window to show edit UI
-            win = QMainWindow(self)
-            # Create Edit UI and add to tabs
-            ui = EditOBAUI(name=sName, outputPin=sPin, enabled=sEnable, icon=sIcon,
-                           momentary=sMom, index=sIdx, availablePins=self.parent.availablePins(sPin),
-                           parent=self, window=win)
-            ui.setParent(self)
-            win.setCentralWidget(ui)
-            if self.parent.prefs['startMaximized']:
-                win.showFullScreen()
-            else:
-                win.show()
+            self.parent.loadUI("edit_oba", sIdx)
             self.parent.disableConfigButtons()
         else:
-            # Show error message
             msgBox = QMessageBox()
             msgBox.setIcon(QMessageBox.Warning)
             msgBox.setWindowTitle('Unable to Edit OBA Element')
@@ -192,45 +102,5 @@ class OBAConfigUI(QWidget, OBAs):
             msgBox.exec_()
 
     def __closeBtnAction(self):
-        # Save configured OBAs
-        self.save()
-        if self.parent is not None:
-            self.parent.closeConfig("Air", self.__formatOBA())
-
-    def __formatOBA(self):
-        i = 0
-        r = {}
-        for oba in self.obas:
-            try:
-                r[i] = {'name': oba.name,
-                        'outputPin': oba.outputPin,
-                        'momentary': oba.momentary,
-                        'active': self.parent.OBAControlUI.obas[i]['active'],
-                        'icon': oba.icon}
-            except:
-                r[i] = {'name': oba.name,
-                        'outputPin': oba.outputPin,
-                        'momentary': oba.momentary,
-                        'active': False,
-                        'icon': oba.icon}
-            i += 1
-        return r
-
-    @property
-    def logger(self):
-        return self._logger
-
-    @logger.setter
-    def logger(self, name='', title=''):
-        """
-        Set the internal logger name and title
-        :param name: The backend name of the logger.
-        :type name: str
-        :param title: The display title of the logger.
-        :type title: str
-        :return: None
-        """
-        if name != '':
-            self._logger.name = name
-        if title != '':
-            self._logger.title = title
+        self.parent.loadUI('control_oba')
+        self.parent.enableConfigButtons()

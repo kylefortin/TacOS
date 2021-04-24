@@ -26,9 +26,6 @@ class OBAs(object):
     def editOBA(self, oba, index):
         self._obas[index] = oba
 
-    def createOBA(self, oba):
-        self._obas.append(oba)
-
     def rmOBA(self, index):
         self._obas.pop(index)
 

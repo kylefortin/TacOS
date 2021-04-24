@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self._mainUI)
         self._dock = QDockWidget(self)
         self._dock.setTitleBarWidget(QWidget())
-        self._dock.setFloating(True)
+        self._dock.setFloating(False)
         self._osk = OSK(rWidget=None)
         self._dock.setWidget(self._osk)
         self.addDockWidget(Qt.BottomDockWidgetArea, self._dock)

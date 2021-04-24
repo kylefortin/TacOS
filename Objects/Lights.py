@@ -26,9 +26,6 @@ class Lights(object):
     def editLight(self, light, index):
         self._lights[index] = light
 
-    def createLight(self,light):
-        self._lights.append(light)
-
     def rmLight(self, index):
         self._lights.pop(index)
 
@@ -49,12 +46,8 @@ class Lights(object):
         lcfg = open(Config.lightConfig, 'rb')
         cfg = pickle.load(lcfg)
         for key in cfg.keys():
-            if 'strobe' in cfg[key].keys():
-                strobe = cfg[key]['strobe']
-            else:
-                strobe = False
             self.addLight(Light(name=cfg[key]['name'], outputPin=cfg[key]['outputPin'], enabled=cfg[key]['enabled'],
-                                icon=cfg[key]['icon'], strobe=strobe))
+                                icon=cfg[key]['icon'], strobe=cfg[key]['strobe']))
             i += 1
         lcfg.close()
         msg = 'Loaded %s lights from local config file.' % i

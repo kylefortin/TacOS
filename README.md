@@ -6,7 +6,7 @@ Optional interface to external composite video device via composite video to USB
 
 ## Current Version
 
-Current version is `1.6.0`
+Current version is `2.0.0`
 
 ## Dependencies
   +*TacOS requires SIP, PyQt5 and QScintilla to be built and installed on the local machine.*  

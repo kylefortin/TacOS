@@ -26,7 +26,7 @@ class MenuButton(QPushButton):
 
     def __callback(self):
         if self._parent is not None:
-            self._parent.setUIPanel(self._panel)
+            self._parent.loadUI(self._panel)
 
     @property
     def panel(self):

@@ -47,6 +47,8 @@ dayBright = 255
 nightBright = 63
 camFrameRate = 30
 strobeRate = 0.5
+defaultI2CAddress = "0x20"
+defaultI2CBus = 1
 
 icons = {
     'gyro': {
@@ -115,7 +117,7 @@ icons = {
 }
 
 # Version info
-version = '1.6.0'
+version = '2.0.0'
 
 
 def faIcon(name):

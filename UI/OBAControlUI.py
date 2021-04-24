@@ -7,7 +7,6 @@ Provides a control interface for enabled OBA objects in the TacOS environment.
 
 """
 
-import pickle
 from AnyQt.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 from AnyQt.QtGui import QIcon
 from Objects import Config, Tools
@@ -17,72 +16,40 @@ from Objects.Logger import Logger
 
 class OBAControlUI(QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, obas, parent):
         super(OBAControlUI, self).__init__()
-        self.title = 'OnBoar Air Control UI'
-        self.layout = QVBoxLayout(self)
-        self.setLayout(self.layout)
-        self._parent = parent
+        self.title = 'OnBoard Air Control UI'
+        self.setLayout(QVBoxLayout(self))
+        self.obas = obas
+        self.parent = parent
 
-        self._logger = Logger('obaControl', "UI : OBAControl")
-
-        # Read in configured OBA elements
-        obacfg = open(Config.obaConfig, 'rb')
-        rawOBAs = pickle.load(obacfg)
-        self._obas = {}
-        for key in rawOBAs.keys():
-            # Add enabled OBA elements to internal dict
-            if rawOBAs[key]['enabled']:
-                self._obas[key] = {'name': rawOBAs[key]['name'],
-                                   'outputPin': rawOBAs[key]['outputPin'],
-                                   'momentary': rawOBAs[key]['momentary'],
-                                   'active': False,
-                                   'icon': rawOBAs[key]['icon']
-                                   }
-        obacfg.close()
+        # Init logger
+        self.logger = Logger('obaControl', "UI : OBAControl")
 
         # Dynamically generate controls
-        keyStrings = []
-        for key in self._obas.keys():
-            x = OBAControl(self._obas[key]['name'], momentary=self._obas[key]['momentary'], parent=self)
-            exec("self._%s = x" % key)
-            control = eval('self._%s' % key)
-            control.setIcon(QIcon(Config.icon('oba', self._obas[key]['icon'])['path']))
-            keyStrings.append('_%s' % key)
-
-        # Organize controls in groups of tuples
-        oList = Tools.group(Config.obaColumns, keyStrings)
+        _keyStrings = []
+        for _i, _oba in enumerate(self.obas):
+            _ctrl = OBAControl(_oba.name, momentary=_oba.momentary, parent=self)
+            exec("self._%s = _ctrl" % _i)
+            _ctrl.setIcon(QIcon(Config.icon('oba', _oba.icon)['path']))
+            if _oba.active:
+                _ctrl.setChecked(True)
+            _keyStrings.append('_%s' % _i)
+        _oList = Tools.group(Config.obaColumns, _keyStrings)
+        del _keyStrings
 
         # Dynamically generate panel layout using grouped tuples
-        for oTuple in oList:
-            # Create panel and set HBox layout
-            panel = QWidget(self)
-            panel.layout = QHBoxLayout(panel)
+        for oTuple in _oList:
+            _panel = QWidget(self)
+            _panel.setLayout(QHBoxLayout(_panel))
             for oWidget in oTuple:
-                panel.layout.addWidget(eval('self.%s' % oWidget))
-            self.layout.addWidget(panel)
-            del panel
+                _panel.layout().addWidget(eval('self.%s' % oWidget))
+            self.layout().addWidget(_panel)
+            del _panel
 
     def setOBA(self, name, state):
-        """
-        :param state: State to set OBA element to.
-        :type state: bool
-        :param name: The display name of the light to toggle.
-        :type name : str
-        """
-        for key in self._obas.keys():
-            if self._obas[key]['name'] == name:
-                self._obas[key]['active'] = state
-                self._parent.setOutputPin(self._obas[key]['outputPin'], state)
+        for _oba in self.obas:
+            if _oba.name == name:
+                _oba.active = state
+                self.parent.setOutputPin(_oba.outputPin, state)
                 break
-
-    @property
-    def obas(self):
-        return self._obas
-
-    @obas.setter
-    def obas(self, value):
-        """
-        :type value: dict
-        """
-        self._obas = value

@@ -26,9 +26,6 @@ class Tracs(object):
     def editTrac(self, trac, index):
         self._tracs[index] = trac
 
-    def createTrac(self, trac):
-        self._tracs.append(trac)
-
     def rmTrac(self, index):
         self._tracs.pop(index)
 

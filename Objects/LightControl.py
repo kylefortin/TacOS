@@ -3,7 +3,7 @@
 TacOS Light Control Button
 ==========================
 
-Custom override for Pyforms ControlButton to add function to click() event.
+Custom override for PyQT ControlButton to add function to click() event.
 
 """
 
@@ -16,8 +16,10 @@ import datetime
 
 epoch = datetime.datetime.utcfromtimestamp(0)
 
+
 def nowMillis(dt):
     return (dt - epoch).total_seconds() * 1000.0
+
 
 class LightControl(QPushButton):
 

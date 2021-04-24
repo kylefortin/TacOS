@@ -7,152 +7,89 @@ Extends the TacOS Lights class to provide a UI to configure available Light obje
 
 """
 
-from Objects.Lights import Lights
 from Objects.Logger import Logger
 from AnyQt.QtWidgets import QWidget, QTableWidget, \
     QTableWidgetItem, QPushButton, QVBoxLayout, \
     QHBoxLayout, QAbstractItemView, QHeaderView, \
-    QMessageBox, QMainWindow
+    QMessageBox
 from AnyQt.QtCore import Qt, pyqtSignal
-from UI.AddLightUI import AddLightUI
-from UI.EditLightUI import EditLightUI
 
 
-class LightConfigUI(QWidget, Lights):
+class LightConfigUI(QWidget):
     keyPressed = pyqtSignal(int)
 
-    def __init__(self, parent=None):
+    def __init__(self, lights, parent):
         super(LightConfigUI, self).__init__()
-        self.parent = parent
         self.title = 'Lighting Configuration'
-        self.layout = QVBoxLayout(self)
-        self.layout.setAlignment(Qt.AlignCenter)
-        self.setLayout(self.layout)
+        self.setLayout(QVBoxLayout(self))
+        self.layout().setAlignment(Qt.AlignCenter)
+        self.parent = parent
+        self.lights = lights
 
-        self._logger = Logger('lightConfig', "UI : LightConfig", level='debug')
+        # Init logger
+        self.logger = Logger('lightConfig', "UI : LightConfig", level='debug')
 
         # Create layout
         self._plus = QPushButton('+', self)
         self._plus.clicked.connect(self.__createLight)
         self._minus = QPushButton('-', self)
         self._minus.clicked.connect(self.__destroyLight)
-        panel = QWidget(self)
-        panel.layout = QHBoxLayout(panel)
-        panel.layout.setAlignment(Qt.AlignRight)
-        panel.layout.addWidget(self._plus)
-        panel.layout.addWidget(self._minus)
-        self.layout.addWidget(panel)
+        _panel = QWidget(self)
+        _panel.setLayout(QHBoxLayout(_panel))
+        _panel.layout().setAlignment(Qt.AlignRight)
+        _panel.layout().addWidget(self._plus)
+        _panel.layout().addWidget(self._minus)
+        self.layout().addWidget(_panel)
         self._lightsList = QTableWidget(0, 5, self)
         self._lightsList.setSelectionBehavior(QAbstractItemView.SelectRows)
         self._lightsList.setHorizontalHeaderLabels(['Name', 'Output Pin', 'Enabled', 'Icon', 'Strobe'])
         self._lightsList.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.keyPressed.connect(self.__onKey)
-        self.layout.addWidget(self._lightsList)
+        self.layout().addWidget(self._lightsList)
         self._editBtn = QPushButton('Edit', self)
         self._editBtn.clicked.connect(self.__editLight)
-        self.layout.addWidget(self._editBtn)
+        self.layout().addWidget(self._editBtn)
         self._closeBtn = QPushButton('Close', self)
         self._closeBtn.clicked.connect(self.__closeBtnAction)
-        self.layout.addWidget(self._closeBtn)
+        self.layout().addWidget(self._closeBtn)
 
-        # Load config files
-        self.load()
-
-        msg = 'TacOS LightConfig UI initialized successfully'
-        self._logger.log(msg)
+        # Populate table
+        for _light in self.lights:
+            _i = self._lightsList.rowCount()
+            self._lightsList.setRowCount(_i+1)
+            for _c, _item in enumerate([_light.name, str(_light.outputPin),
+                          str(_light.enabled), _light.icon, str(_light.strobe)]):
+                _tblItem = QTableWidgetItem(_item)
+                _tblItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                self._lightsList.setItem(_i, _c, _tblItem)
 
     def keyPressEvent(self, event):
         super(LightConfigUI, self).keyPressEvent(event)
         self.keyPressed.emit(event.key())
 
-    def refresh(self):
-        self.__init__(parent=self.parent)
-
-    def addLight(self, light):
-        super(LightConfigUI, self).addLight(light)
-        idx = self._lightsList.rowCount()
-        self._lightsList.setRowCount(idx + 1)
-        self.__setRow(idx, light)
-
-    def editLight(self, light, idx):
-        super(LightConfigUI, self).editLight(light, idx)
-        self.__editRow(idx, light)
-
-    def createLight(self, light):
-        super(LightConfigUI, self).createLight(light)
-        idx = self._lightsList.rowCount()
-        self._lightsList.setRowCount(idx + 1)
-        self.__setRow(idx, light)
-
-    def rmLight(self, index):
-        super(LightConfigUI, self).rmLight(index)
-        self._lightsList.removeRow(index)
-
     def __onKey(self, key):
         if key == Qt.Key_Escape:
             self._lightsList.clearSelection()
 
-    def __setRow(self, idx, light):
-        c = 0
-        for item in [light.name, str(light.outputPin),
-                     str(light.enabled), light.icon, str(light.strobe)]:
-            tableItem = QTableWidgetItem(item)
-            tableItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-            self._lightsList.setItem(idx, c, tableItem)
-            c += 1
-
-    def __editRow(self, idx, light):
-        map = {
-            0: light.name,
-            1: str(light.outputPin),
-            2: str(light.enabled),
-            3: light.icon,
-            4: str(light.strobe)
-        }
-        for col in map.keys():
-            tableItem = self._lightsList.item(idx, col)
-            tableItem.setText(map[col])
-
     def __createLight(self):
-        # Create Edit UI and add to tabs
-        ui = AddLightUI(availablePins=self.parent.availablePins(), parent=self)
-        ui.setParent(self)
-        i = self.parent.tabs.addTab(ui, 'Create Lighting Element')
-        self.parent.tabs.setCurrentIndex(i)
-        self.parent.disableConfigButtons()
+        self.parent.loadUI('create_light')
 
     def __destroyLight(self):
-        rows = self._lightsList.selectedIndexes()
-        names = []
-        for i in rows:
-            names.append(self._lightsList.item(i.row(), 0))
-        for name in names:
-            for n in range(self._lightsList.rowCount()):
-                if self._lightsList.item(n, 0) == name:
-                    self.rmLight(n)
+        items = self._lightsList.selectedIndexes()
+        rows = []
+        for i in items:
+            if i.row() not in rows:
+                rows.append(i.row())
+        rows.sort(reverse=True)
+        for row in rows:
+            self.parent.lights.rmLight(row)
+        self.parent.lights.save()
+        self.parent.loadUI('config_light')
 
     def __editLight(self):
         sIdx = self._lightsList.currentIndex().row()
         if sIdx not in [None, -1]:
-            # Read selected row attributes
-            sName = self._lightsList.item(sIdx, 0).text()
-            sPin = int(self._lightsList.item(sIdx, 1).text())
-            sEnable = self._lightsList.item(sIdx, 2).text() != 'False'
-            sIcon = self._lightsList.item(sIdx, 3).text()
-            sStrobe = self._lightsList.item(sIdx, 4).text() != 'False'
-            # Create window to show edit UI
-            win = QMainWindow(self)
-            # Create Edit UI and add to tabs
-            ui = EditLightUI(name=sName, outputPin=sPin, enabled=sEnable, icon=sIcon, strobe=sStrobe,
-                             index=sIdx, availablePins=self.parent.availablePins(sPin), parent=self,
-                             window=win)
-            ui.setParent(self)
-            # Open window in fullscreen
-            win.setCentralWidget(ui)
-            if self.parent.prefs['startMaximized']:
-                win.showFullScreen()
-            else:
-                win.show()
+            self.parent.loadUI("edit_light", sIdx)
             self.parent.disableConfigButtons()
         else:
             msgBox = QMessageBox()
@@ -163,44 +100,5 @@ class LightConfigUI(QWidget, Lights):
             msgBox.exec_()
 
     def __closeBtnAction(self):
-        self.save()
-        if self.parent is not None:
-            self.parent.closeConfig("Lighting", self.__formatLight())
-
-    def __formatLight(self):
-        i = 0
-        r = {}
-        for light in self.lights:
-            try:
-                r[i] = {'name': light.name,
-                        'outputPin': light.outputPin,
-                        'active': self.parent.LightControlUI.lights[i]['active'],
-                        'icon': light.icon,
-                        'strobe': light.strobe}
-            except:
-                r[i] = {'name': light.name,
-                        'outputPin': light.outputPin,
-                        'active': False,
-                        'icon': light.icon,
-                        'strobe': light.strobe}
-            i += 1
-        return r
-
-    @property
-    def logger(self):
-        return self._logger
-
-    @logger.setter
-    def logger(self, name='', title=''):
-        """
-        Set the internal logger name and title
-        :param name: The backend name of the logger.
-        :type name: str
-        :param title: The display title of the logger.
-        :type title: str
-        :return: None
-        """
-        if name != '':
-            self._logger.name = name
-        if title != '':
-            self._logger.title = title
+        self.parent.loadUI('control_light')
+        self.parent.enableConfigButtons()

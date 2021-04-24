@@ -12,93 +12,73 @@ from AnyQt.QtWidgets import QWidget, QPushButton, QCheckBox, \
 from AnyQt.QtGui import QIcon
 from AnyQt.QtCore import Qt
 from Objects import Config
-from Objects.Trac import Trac
 from Objects.LineEdit import LineEdit
 
 
 class EditTracUI(QWidget):
 
-    def __init__(self, **kwargs):
+    def __init__(self, trac, parent):
         super(EditTracUI, self).__init__()
-        self.parent = kwargs.get('parent', None)
-        self.window = kwargs.get('window', None)
-        self.name = kwargs.get('name', '')
-        self.outputPin = kwargs.get('outputPin', 0)
-        self.enabled = kwargs.get('enabled', True)
-        self.icon = kwargs.get('icon', None)
-        self.index = kwargs.get('index', 0)
-        availablePins = kwargs.get('availablePins', Config.outputPinList)
-        self._trac = Trac(name=self.name, outputPin=self.outputPin, enabled=self.enabled,
-                          icon=self.icon)
         self.title = 'Edit TracControl Element'
-        self.layout = QVBoxLayout(self)
-        self.layout.setAlignment(Qt.AlignCenter)
+        self.setLayout(QVBoxLayout(self))
+        self.layout().setAlignment(Qt.AlignCenter)
+        self.parent = parent
+        self.trac = trac
 
         # Init controls
         self._nameControl = LineEdit('Name', self)
-        self._nameControl.setText(self.name)
+        self._nameControl.setText(self.trac.name)
         self._nameControl.kb.connect(self.showOSK)
         self._outputPinControlLabel = QLabel('Output Pin', self)
         self._outputPinControl = QComboBox(self)
-        for x in availablePins:
-            self._outputPinControl.addItem(str(x))
-        for i in range(self._outputPinControl.count()):
-            if self._outputPinControl.itemText(i) == str(self.outputPin):
-                self._outputPinControl.setCurrentIndex(i)
+        for _pins in self.parent.availablePins():
+            self._outputPinControl.addItem(str(_pins))
+        for _i in range(self._outputPinControl.count()):
+            if self._outputPinControl.itemText(_i) == str(self.trac.outputPin):
+                self._outputPinControl.setCurrentIndex(_i)
                 break
-        del x, i
         self._enabledControl = QCheckBox('Enabled', self)
-        self._enabledControl.setChecked(self.enabled)
+        self._enabledControl.setChecked(self.trac.enabled)
         self._iconControlLabel = QLabel('Icon Path', self)
         self._iconControl = QComboBox(self)
-        for key in Config.icons['tracControl'].keys():
-            icon = Config.icon('tracControl', key)
-            self._iconControl.addItem(icon['name'], key)
+        for _key in Config.icons['tracControl'].keys():
+            icon = Config.icon('tracControl', _key)
+            self._iconControl.addItem(icon['name'], _key)
             self._iconControl.setItemIcon(self._iconControl.count() - 1, QIcon(icon['path']))
-        del key
         # Set combobox selection to icon variable
         for iconIdx in range(self._iconControl.count()):
-            if self.icon is not None and self._iconControl.itemData(iconIdx) == self.icon:
+            if self.trac.icon is not None and self._iconControl.itemData(iconIdx) == self.trac.icon:
                 self._iconControl.setCurrentIndex(iconIdx)
                 break
         self._saveBtn = QPushButton('Save', self)
         self._saveBtn.clicked.connect(self.__saveBtnAction)
         self._cancelBtn = QPushButton('Cancel', self)
         self._cancelBtn.clicked.connect(self.__cancel)
-
-        layoutList = [
+        _layout = [
             ['_nameControl'],
             ['_outputPinControlLabel', '_outputPinControl'],
             ['_enabledControl'],
             ['_iconControlLabel', '_iconControl'],
             ['_saveBtn', '_cancelBtn']
         ]
-
-        for l in layoutList:
-            panel = QWidget(self)
-            panel.layout = QHBoxLayout(panel)
-            panel.layout.setAlignment(Qt.AlignCenter)
-            for ctrl in l:
-                panel.layout.addWidget(eval('self.%s' % ctrl))
-            self.layout.addWidget(panel)
+        for _list in _layout:
+            _panel = QWidget(self)
+            _panel.setLayout(QHBoxLayout(_panel))
+            _panel.layout().setAlignment(Qt.AlignCenter)
+            for _ctrl in _list:
+                _panel.layout().addWidget(eval('self.%s' % _ctrl))
+            self.layout().addWidget(_panel)
 
     def __saveBtnAction(self):
-        self._trac.name = self._nameControl.text()
-        self._trac.outputPin = int(self._outputPinControl.currentText())
-        self._trac.enabled = self._enabledControl.isChecked()
-        self._trac.icon = self._iconControl.currentData()
-        if self.parent is not None:
-            self.parent.editTrac(self._trac, self.index)
-            self.parent.parent.refreshConfigPanels()
-        if self.window is not None:
-            self.window.close()
+        self.trac.name = self._nameControl.text()
+        self.trac.outputPin = int(self._outputPinControl.currentText())
+        self.trac.enabled = self._enabledControl.isChecked()
+        self.trac.icon = self._iconControl.currentData()
+        self.parent.tracs.save()
+        self.parent.loadUI('config_trac')
 
     def __cancel(self):
-        self.close()
-        if self.parent is not None:
-            self.parent.parent.refreshConfigPanels()
-        if self.window is not None:
-            self.window.close()
+        self.parent.loadUI('config_trac')
 
     def showOSK(self):
         self.window().dock.show()
