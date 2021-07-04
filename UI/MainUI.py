@@ -242,6 +242,10 @@ class MainUI(QWidget):
         _type = ui.split('_')[1]
         _ui = None
         if _mode == 'control':
+            if _type == 'gyro':
+                self.configButton.setText("Calibrate")
+            else:
+                self.configButton.setText("Configure")
             if _type == 'light':
                 _ui = LightControlUI(self.lights.lights, self)
             elif _type == 'oba':
@@ -331,6 +335,8 @@ class MainUI(QWidget):
             self.disableConfigButtons()
             self.mainPanel.layout().removeWidget(self.currentUI['obj'])
             self.loadUI(self.currentUI['name'].replace('control', 'config'))
+        elif self.currentUI['name'] == 'control_gyro':
+            self.currentUI['obj'].calibrate()
 
     @property
     def mainPanel(self):

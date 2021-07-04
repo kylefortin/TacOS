@@ -7,7 +7,7 @@ Built-in OSK for the TacOS environment.
 
 """
 
-from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QPushButton
+from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QLabel
 from AnyQt.QtCore import Qt
 from Objects.OSKKey import OSKKey
 
@@ -16,8 +16,14 @@ class OSK(QWidget):
 
     def __init__(self, rWidget=None):
         super(OSK, self).__init__()
+        self.showFullScreen()
         self._rWidget = rWidget
         self.layout = QVBoxLayout(self)
+        self.currentText = QLabel(self)
+        self.currentText.setAlignment(Qt.AlignCenter)
+        if rWidget is not None:
+            self.currentText.setText(rWidget.text())
+        self.layout.addWidget(self.currentText)
         keyLayout = [
             ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-'],
             ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
@@ -45,6 +51,9 @@ class OSK(QWidget):
         bkspc.rKey = '<<'
         contolPanel.layout.addWidget(bkspc)
         self.layout.addWidget(contolPanel)
+        self.closeButton = QPushButton("OK", self)
+        self.closeButton.clicked.connect(self.__closeButtonAction)
+        self.layout.addWidget(self.closeButton)
 
     def onClick(self, key):
         if self.rWidget is not None:
@@ -55,6 +64,10 @@ class OSK(QWidget):
                 self._shift.setChecked(False)
             else:
                 self.rWidget.setText(self.rWidget.text() + key)
+            self.currentText.setText(self.rWidget.text())
+
+    def __closeButtonAction(self):
+        self.parent().hide()
 
     @property
     def rWidget(self):
@@ -66,3 +79,4 @@ class OSK(QWidget):
             raise TypeError("Supplied return Widget is not of type QWidget: %s" % type(value).__name__)
         else:
             self._rWidget = value
+            self.currentText.setText(value.text())

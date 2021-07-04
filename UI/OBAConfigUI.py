@@ -59,8 +59,8 @@ class OBAConfigUI(QWidget):
         for _oba in self.obas:
             _i = self._obaList.rowCount()
             self._obaList.setRowCount(_i + 1)
-            for _c, _item in enumerate([_oba.name, str(_oba.outputPin),
-                                        str(_oba.enabled), _oba.icon, str(_oba.momentary)]):
+            for _c, _item in enumerate([_oba.name, str(_oba.outputPin), str(_oba.momentary),
+                                        str(_oba.enabled), _oba.icon]):
                 _tblItem = QTableWidgetItem(_item)
                 _tblItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 self._obaList.setItem(_i, _c, _tblItem)

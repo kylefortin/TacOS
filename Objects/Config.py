@@ -22,6 +22,7 @@ faLibrary = graphics + '/fa/solid'
 
 # Define config files
 css = data + '/tacos.css'
+cal = data + '/cal.tacos'
 lightConfig = data + '/lightcfg.tacos'
 obaConfig = data + '/obacfg.tacos'
 tracConfig = data + '/traccfg.tacos'
@@ -117,7 +118,7 @@ icons = {
 }
 
 # Version info
-version = '2.0.0'
+version = '2.0.1'
 
 
 def faIcon(name):
