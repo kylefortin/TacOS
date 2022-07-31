@@ -20,6 +20,12 @@ class OSK(QWidget):
         self._rWidget = rWidget
         self.layout = QVBoxLayout(self)
         self.currentText = QLabel(self)
+        self.currentText.setStyleSheet("background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4d4d4d, stop: 0 #646464, stop: 1 #5d5d5d);\
+                                        padding: 1px;\
+                                        border-style: solid;\
+                                        border: 1px solid #1e1e1e;\
+                                        border-radius: 5;\
+                                        selection-background-color: #ffaa00;")
         self.currentText.setAlignment(Qt.AlignCenter)
         if rWidget is not None:
             self.currentText.setText(rWidget.text())

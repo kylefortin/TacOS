@@ -4715,3 +4715,14 @@
 2021-07-04 08:29:32.833100 -- UI : Main -- Night mode True: backlight set to 63
 2021-07-04 08:29:33.319862 -- UI : Main -- Night mode False: backlight set to 255
 2021-07-04 08:30:30.309101 -- Class : OBAs -- Pickled 4 OBA elements to local config file.
+2021-07-13 19:04:24.377181 -- Class : Lights -- Loaded 3 lights from local config file.
+2021-07-13 19:04:24.413681 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2021-07-13 19:04:24.496083 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2021-07-13 19:05:04.796574 -- UI : Main -- Night mode True: backlight set to 63
+2021-07-13 19:05:05.239554 -- UI : Main -- Night mode False: backlight set to 255
+2021-07-13 19:07:34.991012 -- Class : Lights -- Loaded 3 lights from local config file.
+2021-07-13 19:07:34.993506 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2021-07-13 19:07:35.039852 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2021-07-13 19:09:22.797050 -- Class : Lights -- Loaded 3 lights from local config file.
+2021-07-13 19:09:22.799325 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2021-07-13 19:09:22.847479 -- Class : Tracs -- Loaded 2 tracs from local config file.
