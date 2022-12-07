@@ -7,7 +7,7 @@ Contains various environment configuration variables for the TacOS application.
 
 """
 
-import os
+import os, pickle
 from AnyQt.QtGui import QIcon
 
 # Define working directories
@@ -118,7 +118,27 @@ icons = {
 }
 
 # Version info
-version = '2.0.1'
+version = '2.1.0'
+
+
+def getPrefs():
+    with open(prefs, 'rb') as file:
+        return pickle.load(file)
+
+
+def getPref(p):
+    return getPrefs().get(p)
+
+
+def setPrefs(p):
+    with open(prefs, 'wb') as file:
+        pickle.dump(p, file)
+
+
+def setPref(p, v):
+    with getPrefs() as _:
+        _[p] = v
+        setPrefs(_)
 
 
 def faIcon(name):

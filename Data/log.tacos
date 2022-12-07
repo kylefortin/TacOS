@@ -4726,3 +4726,77 @@
 2021-07-13 19:09:22.797050 -- Class : Lights -- Loaded 3 lights from local config file.
 2021-07-13 19:09:22.799325 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
 2021-07-13 19:09:22.847479 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-06 16:40:30.875565 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-06 16:40:30.879914 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-06 16:40:30.880793 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-06 16:40:46.810924 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-06 16:40:46.812802 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-06 16:40:46.813409 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-06 16:44:05.537756 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-06 16:44:05.539941 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-06 16:44:05.540477 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-06 16:44:53.104393 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-06 16:44:53.110888 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-06 16:44:53.111547 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-06 16:45:38.981087 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-06 16:45:38.984403 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-06 16:45:38.985353 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-06 16:46:17.714640 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-06 16:46:17.718116 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-06 16:46:17.718816 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-06 16:46:36.647932 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-06 16:46:36.651176 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-06 16:46:36.651876 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-06 16:47:28.869205 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-06 16:47:28.873234 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-06 16:47:28.873846 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-06 16:48:06.029213 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-06 16:48:06.031668 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-06 16:48:06.032673 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-06 16:48:43.726366 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-06 16:48:43.729531 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-06 16:48:43.730184 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 16:40:52.495014 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 16:40:52.497666 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 16:40:52.498325 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 16:43:37.303734 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 16:43:37.306505 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 16:43:37.307319 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 16:44:43.823134 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 16:44:43.825618 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 16:44:43.826355 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 16:44:45.526334 -- UI : Main -- Night mode True: backlight set to 63
+2022-12-07 16:44:46.720205 -- UI : Main -- Night mode False: backlight set to 255
+2022-12-07 16:48:36.246534 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 16:48:36.251148 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 16:48:36.251816 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 16:49:47.760136 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 16:49:47.764251 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 16:49:47.765164 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 16:50:24.386298 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 16:50:24.388522 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 16:50:24.389371 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 16:51:07.750469 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 16:51:07.753731 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 16:51:07.754373 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 16:52:09.802357 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 16:52:09.804963 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 16:52:09.805538 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 16:53:01.411978 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 16:53:01.414059 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 16:53:01.414470 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 16:56:34.539829 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 16:56:34.543663 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 16:56:34.545417 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 17:01:12.854392 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 17:01:12.857112 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 17:01:12.857782 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 17:01:58.030307 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 17:01:58.031616 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 17:01:58.031962 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 17:03:18.180023 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 17:03:18.182126 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 17:03:18.182932 -- Class : Tracs -- Loaded 2 tracs from local config file.
+2022-12-07 17:06:30.886055 -- Class : OBAs -- Loaded 4 OBA elements from local config file.
+2022-12-07 17:06:30.888655 -- Class : Lights -- Loaded 3 lights from local config file.
+2022-12-07 17:06:30.889344 -- Class : Tracs -- Loaded 2 tracs from local config file.

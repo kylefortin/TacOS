@@ -20,6 +20,6 @@ class Trac(object):
         self.active = kwargs.get('active', False)
 
     @property
-    def getInfo(self):
+    def info(self):
         return {'name': self.name, 'outputPin': self.outputPin, 'enabled': self.enabled, 'icon' : self.icon,
                 'active': self.active}

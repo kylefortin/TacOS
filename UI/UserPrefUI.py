@@ -117,8 +117,9 @@ class UserPrefUI(QWidget):
         self.__init__(self.window().prefs, self.parent)
 
     def __save(self):
-        self.parent.prefs = self.__getPrefs()
-        self.parent.savePrefs()
+        _prefs = self.__getPrefs()
+        self.parent.prefs = _prefs
+        Config.setPrefs(_prefs)
 
     def __restart(self):
         os.system("sudo sh /home/pi/TacOS/launcher.sh")
@@ -138,7 +139,7 @@ class UserPrefUI(QWidget):
             'i2cDebug': self._i2cDebug.isChecked(),
             'debugLogging': self._debugLogging.isChecked()
         }
-        for _key in _updates.keys():
-            self.prefs[_key] = _updates[_key]
+        for _ in _updates.keys():
+            self.prefs[_] = _updates[_]
         return self.prefs
 

@@ -21,40 +21,42 @@ class OBAs(object):
         self._logger = Logger('obas', 'Class : OBAs')
 
     def addOBA(self, oba):
-        self._obas.append(oba)
+        self.obas.append(oba)
 
     def editOBA(self, oba, index):
-        self._obas[index] = oba
+        self.obas[index] = oba
 
     def rmOBA(self, index):
-        self._obas.pop(index)
+        self.obas.pop(index)
 
     def save(self):
-        configOBAs = {}
-        i = 0
-        for x in self.obas:
-            configOBAs[i] = {'name': x.name, 'outputPin': x.outputPin, 'momentary': x.momentary,
-                             'enabled': x.enabled, 'icon': x.icon}
+        configOBAs, i = {}, 0
+        for _ in self.obas:
+            configOBAs[i] = {'name': _.name, 'outputPin': _.outputPin, 'momentary': _.momentary,
+                             'enabled': _.enabled, 'icon': _.icon}
             i += 1
-        obacfg = open(Config.obaConfig, 'wb')
-        pickle.dump(configOBAs, obacfg)
-        obacfg.close()
-        msg = 'Pickled %s OBA elements to local config file.' % i
-        self._logger.log(msg)
+        with open(Config.obaConfig, 'wb') as obacfg:
+            pickle.dump(configOBAs, obacfg)
+        self.logger.log('Pickled %s OBA elements to local config file.' % i)
 
     def load(self):
         i = 0
-        obacfg = open(Config.obaConfig, 'rb')
-        cfg = pickle.load(obacfg)
-        for key in cfg.keys():
-            self.addOBA(
-                OBA(name=cfg[key]['name'], outputPin=cfg[key]['outputPin'], enabled=cfg[key]['enabled'],
-                    icon=cfg[key]['icon'], momentary=cfg[key]['momentary']))
-            i += 1
-        obacfg.close()
-        msg = 'Loaded %s OBA elements from local config file.' % i
-        self._logger.log(msg)
+        with open(Config.obaConfig, 'rb') as obacfg:
+            cfg = pickle.load(obacfg)
+            for key in cfg.keys():
+                self.addOBA(
+                    OBA(
+                        name=cfg[key]['name'], outputPin=cfg[key]['outputPin'], enabled=cfg[key]['enabled'],
+                        icon=cfg[key]['icon'], momentary=cfg[key]['momentary']
+                    )
+                )
+                i += 1
+        self.logger.log('Loaded %s OBA elements from local config file.' % i)
 
     @property
     def obas(self):
         return self._obas
+
+    @property
+    def logger(self):
+        return self._logger

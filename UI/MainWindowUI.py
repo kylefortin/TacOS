@@ -26,11 +26,11 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(open(Config.css, 'rt').read())
         self.setCentralWidget(self._mainUI)
         self._dock = QDockWidget(self)
+        self._osk = OSK(rWidget=None)
+        self._osk.setParent(self._dock)
         self._dock.setTitleBarWidget(QWidget())
         self._dock.setFloating(True)
         self._dock.setGeometry(0, 0, 800, 480)
-        self._osk = OSK(rWidget=None)
-        self._osk.setParent(self._dock)
         self._dock.setWidget(self._osk)
         self.addDockWidget(Qt.BottomDockWidgetArea, self._dock)
         self._dock.hide()
@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(Config.geometry[0], Config.geometry[1], Config.geometry[2], Config.geometry[3])
-        if pickle.load(open(Config.prefs, 'rb'))['startMaximized']:
+        if Config.getPref('startMaximized'):
             self.showFullScreen()
         else:
             self.show()
@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
     @property
     def osk(self):
         return self._osk
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

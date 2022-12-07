@@ -29,7 +29,6 @@ class Gyrometer(QWidget):
         self.calibrationY = 0
         self.comm = None
         self.serial = None
-
         # Add serial monitor
         comPorts = list_ports.comports()
         for port in comPorts:
@@ -39,32 +38,27 @@ class Gyrometer(QWidget):
         if self.comm is not None:
             self.serial = SerialMonitor(port=self.comm, baud=115200)
             self.serial.open()
-
         # Add serial read timer
         self.serialTimer = QTimer()
         self.serialTimer.timeout.connect(self.__readSerial)
-
         # Add graphic update timers
         self.sideViewTimer = QTimer()
         self.sideViewTimer.timeout.connect(self.rotateSideView)
         self.frontViewTimer = QTimer()
         self.frontViewTimer.timeout.connect(self.rotateFrontView)
-
         # Side view icon
         self._sideImage = GyroImage(Config.icons['gyro']['side']['path'], self, 'y',
-                                    scaleWidth=150, compassRotation=90, fixedSize=300)
+                                    scaleWidth=150, compassRotation=90, fixedSize=200)
         self.layout().addWidget(self._sideImage)
-
         # Front view icon
-        self._frontImage = GyroImage(Config.icons['gyro']['rear']['path'], self, 'x', scaleHeight=100, fixedSize=300)
+        self._frontImage = GyroImage(Config.icons['gyro']['rear']['path'], self, 'x',
+                                     scaleHeight=100, fixedSize=200)
         self.layout().addWidget(self._frontImage)
-
         # Load cal values
-        file = open(Config.cal, 'rb')
-        cal = pickle.load(file)
-        self.calibrationX = cal['x']
-        self.calibrationY = cal['y']
-        file.close()
+        with open(Config.cal, 'rb') as file:
+            cal = pickle.load(file)
+            self.calibrationX = cal['x']
+            self.calibrationY = cal['y']
 
     def __readSerial(self):
         if self.serial is not None:

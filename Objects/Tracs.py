@@ -3,8 +3,7 @@
 TacOS TracControls
 ==================
 
-A passive class that holds an array of configured Trac objects
-    for the TacOS GUI.
+A passive class that holds an array of configured Trac objects for the TacOS GUI.
 
 """
 
@@ -21,38 +20,41 @@ class Tracs(object):
         self._logger = Logger('tracs', 'Class : Tracs')
 
     def addTrac(self, trac):
-        self._tracs.append(trac)
+        self.tracs.append(trac)
 
     def editTrac(self, trac, index):
-        self._tracs[index] = trac
+        self.tracs[index] = trac
 
     def rmTrac(self, index):
-        self._tracs.pop(index)
+        self.tracs.pop(index)
 
     def save(self):
-        configTracs = {}
-        i = 0
-        for x in self.tracs:
-            configTracs[i] = {'name': x.name, 'outputPin': x.outputPin, 'enabled': x.enabled, 'icon': x.icon}
+        configTracs, i = {}, 0
+        for _ in self.tracs:
+            configTracs[i] = {'name': _.name, 'outputPin': _.outputPin, 'enabled': _.enabled, 'icon': _.icon}
             i += 1
-        tcfg = open(Config.tracConfig, 'wb')
-        pickle.dump(configTracs, tcfg)
-        tcfg.close()
-        msg = 'Pickled %s tracs to local config file.' % i
-        self._logger.log(msg)
+        with open(Config.tracConfig, 'wb') as tcfg:
+            pickle.dump(configTracs, tcfg)
+        self.logger.log('Pickled %s tracs to local config file.' % i)
 
     def load(self):
         i = 0
-        tcfg = open(Config.tracConfig, 'rb')
-        cfg = pickle.load(tcfg)
-        for key in cfg.keys():
-            self.addTrac(Trac(name=cfg[key]['name'], outputPin=cfg[key]['outputPin'], enabled=cfg[key]['enabled'],
-                              icon=cfg[key]['icon']))
-            i += 1
-        tcfg.close()
-        msg = 'Loaded %s tracs from local config file.' % i
-        self._logger.log(msg)
+        with open(Config.tracConfig, 'rb') as tcfg:
+            cfg = pickle.load(tcfg)
+            for key in cfg.keys():
+                self.addTrac(
+                    Trac(
+                        name=cfg[key]['name'], outputPin=cfg[key]['outputPin'], enabled=cfg[key]['enabled'],
+                      icon=cfg[key]['icon']
+                    )
+                )
+                i += 1
+        self.logger.log('Loaded %s tracs from local config file.' % i)
 
     @property
     def tracs(self):
         return self._tracs
+
+    @property
+    def logger(self):
+        return self._logger

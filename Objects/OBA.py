@@ -19,3 +19,8 @@ class OBA(object):
         self.icon = kwargs.get('icon', Config.faIcon('wind'))
         self.momentary = bool(kwargs.get('momentary', False))
         self.active = bool(kwargs.get('active', False))
+
+    @property
+    def info(self):
+        return {'name': self.name, 'outputPin': self.outputPin, 'enabled': self.enabled, 'icon': self.icon,
+                'momentary': self.momentary, 'active': self.active}
