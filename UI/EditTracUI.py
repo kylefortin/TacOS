@@ -17,21 +17,20 @@ from Objects.LineEdit import LineEdit
 
 class EditTracUI(QWidget):
 
-    def __init__(self, trac, parent):
+    def __init__(self, idx, parent):
         super(EditTracUI, self).__init__()
         self.title = 'Edit TracControl Element'
         self.setLayout(QVBoxLayout(self))
         self.layout().setAlignment(Qt.AlignCenter)
         self.parent = parent
-        self.trac = trac
-
+        self.trac = self.parent.tracs.tracs[idx]
         # Init controls
         self._nameControl = LineEdit('Name', self)
         self._nameControl.setText(self.trac.name)
         self._nameControl.kb.connect(self.showOSK)
         self._outputPinControlLabel = QLabel('Output Pin', self)
         self._outputPinControl = QComboBox(self)
-        for _pins in self.parent.availablePins():
+        for _pins in self.parent.availablePins(self.trac):
             self._outputPinControl.addItem(str(_pins))
         for _i in range(self._outputPinControl.count()):
             if self._outputPinControl.itemText(_i) == str(self.trac.outputPin):

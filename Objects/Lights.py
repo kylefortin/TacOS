@@ -37,6 +37,7 @@ class Lights(object):
         with open(Config.lightConfig, 'wb') as lcfg:
             pickle.dump(configLights, lcfg)
         self.logger.log('Pickled %s lights to local config file.' % i)
+        del configLights, i, lcfg
 
     def load(self):
         i = 0
@@ -50,6 +51,7 @@ class Lights(object):
                 )
                 i += 1
         self.logger.log('Loaded %s lights from local config file.' % i)
+        del i, cfg, key
 
     @property
     def lights(self):

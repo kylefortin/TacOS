@@ -16,20 +16,20 @@ from Objects.Logger import Logger
 
 class TracControlUI(QWidget):
 
-    def __init__(self, tracs, parent):
+    def __init__(self, parent):
         super(TracControlUI, self).__init__()
         self.title = 'Light Configuration'
         self.setLayout(QVBoxLayout(self))
-        self.tracs = tracs
         self.parent = parent
+        self.tracs = self.parent.tracs
 
         # Init logger
         self.logger = Logger('tracControl', "UI : TracControl")
 
         # Dynamically generate controls
         _keyStrings = []
-        for _i,_trac in enumerate(self.tracs):
-            _ctrl = TracControl(_trac.name, parent=self)
+        for _i, _trac in enumerate(self.tracs.tracs):
+            _ctrl = TracControl(_trac, parent=self)
             exec("self._%s = _ctrl" % _i)
             _ctrl.setParent(self)
             _ctrl.setIcon(QIcon(Config.icon('tracControl', _trac.icon)['path']))
@@ -49,7 +49,7 @@ class TracControlUI(QWidget):
             del _panel
 
     def setTrac(self, name, state):
-        for _trac in self.tracs:
+        for _trac in self.tracs.tracs:
             if _trac.name == name:
                 _trac.active = state
                 self.parent.setOutputPin(_trac.outputPin, state)

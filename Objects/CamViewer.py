@@ -69,7 +69,7 @@ class CamViewer(QWidget):
         f = cv2.cvtColor(f, cv2.COLOR_BGR2RGB)
         qFormat = QImage.Format_Indexed8
         if len(f.shape) == 3:
-            if f.shape[2]==4:
+            if f.shape[2] == 4:
                 qFormat = QImage.Format_RGBA8888
             else:
                 qFormat = QImage.Format_RGB888
@@ -83,12 +83,12 @@ class CamViewer(QWidget):
         self._time = t
 
     def start(self):
-        self.timer.start(1000.0/self.frameRate)
+        self.timer.start(1000.0 / self.frameRate)
         self._page.repaint()
-
 
     def stop(self):
         self.timer.stop()
+        self.cap.release()
 
     def deleteLater(self):
         self.cap.release()

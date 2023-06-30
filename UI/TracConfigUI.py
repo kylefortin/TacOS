@@ -22,13 +22,13 @@ from UI.EditTracUI import EditTracUI
 class TracConfigUI(QWidget):
     keyPressed = pyqtSignal(int)
 
-    def __init__(self, tracs, parent):
+    def __init__(self, parent):
         super(TracConfigUI, self).__init__()
         self.title = 'TracControl Configuration'
         self.setLayout(QVBoxLayout(self))
         self.layout().setAlignment(Qt.AlignCenter)
         self.parent = parent
-        self.tracs = tracs
+        self.tracs = self.parent.tracs
 
         # Init logger
         self.logger = Logger('tracConfig', "UI : TracConfig", level='debug')
@@ -58,7 +58,7 @@ class TracConfigUI(QWidget):
         self.layout().addWidget(self._closeBtn)
 
         # Populate table
-        for _trac in self.tracs:
+        for _trac in self.tracs.tracs:
             _i = self._tracsList.rowCount()
             self._tracsList.setRowCount(_i + 1)
             for _c, _item in enumerate([_trac.name, str(_trac.outputPin),
@@ -86,8 +86,8 @@ class TracConfigUI(QWidget):
                 rows.append(i.row())
         rows.sort(reverse=True)
         for row in rows:
-            self.parent.tracs.rmTrac(row)
-        self.parent.tracs.save()
+            self.tracs.rmTrac(row)
+        self.tracs.save()
         self.parent.loadUI('config_trac')
 
     def __editTrac(self):

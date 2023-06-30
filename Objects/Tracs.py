@@ -36,6 +36,7 @@ class Tracs(object):
         with open(Config.tracConfig, 'wb') as tcfg:
             pickle.dump(configTracs, tcfg)
         self.logger.log('Pickled %s tracs to local config file.' % i)
+        del configTracs, i, tcfg
 
     def load(self):
         i = 0
@@ -50,6 +51,7 @@ class Tracs(object):
                 )
                 i += 1
         self.logger.log('Loaded %s tracs from local config file.' % i)
+        del i, cfg, key
 
     @property
     def tracs(self):

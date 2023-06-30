@@ -18,13 +18,13 @@ from AnyQt.QtCore import Qt, pyqtSignal
 class LightConfigUI(QWidget):
     keyPressed = pyqtSignal(int)
 
-    def __init__(self, lights, parent):
+    def __init__(self, parent):
         super(LightConfigUI, self).__init__()
         self.title = 'Lighting Configuration'
         self.setLayout(QVBoxLayout(self))
         self.layout().setAlignment(Qt.AlignCenter)
         self.parent = parent
-        self.lights = lights
+        self.lights = self.parent.lights
 
         # Init logger
         self.logger = Logger('lightConfig', "UI : LightConfig", level='debug')
@@ -54,7 +54,7 @@ class LightConfigUI(QWidget):
         self.layout().addWidget(self._closeBtn)
 
         # Populate table
-        for _light in self.lights:
+        for _light in self.lights.lights:
             _i = self._lightsList.rowCount()
             self._lightsList.setRowCount(_i+1)
             for _c, _item in enumerate([_light.name, str(_light.outputPin),
@@ -82,8 +82,8 @@ class LightConfigUI(QWidget):
                 rows.append(i.row())
         rows.sort(reverse=True)
         for row in rows:
-            self.parent.lights.rmLight(row)
-        self.parent.lights.save()
+            self.lights.rmLight(row)
+        self.lights.save()
         self.parent.loadUI('config_light')
 
     def __editLight(self):

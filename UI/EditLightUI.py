@@ -17,11 +17,11 @@ from Objects.LineEdit import LineEdit
 
 class EditLightUI(QWidget):
 
-    def __init__(self, light, parent):
+    def __init__(self, idx, parent):
         super(EditLightUI, self).__init__()
         self.title = 'Edit Lighting Element'
         self.parent = parent
-        self.light = light
+        self.light = self.parent.lights.lights[idx]
         self.setLayout(QVBoxLayout(self))
         self.layout().setAlignment(Qt.AlignCenter)
 
@@ -32,7 +32,7 @@ class EditLightUI(QWidget):
         # Init Output Pin dropdown control
         self._outputPinControlLabel = QLabel('Output Pin', self)
         self._outputPinControl = QComboBox(self)
-        for x in self.parent.availablePins():
+        for x in self.parent.availablePins(self.light):
             self._outputPinControl.addItem(str(x))
         for i in range(self._outputPinControl.count()):
             if self._outputPinControl.itemText(i) == str(self.light.outputPin):

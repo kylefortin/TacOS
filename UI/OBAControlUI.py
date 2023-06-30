@@ -16,20 +16,20 @@ from Objects.Logger import Logger
 
 class OBAControlUI(QWidget):
 
-    def __init__(self, obas, parent):
+    def __init__(self, parent):
         super(OBAControlUI, self).__init__()
         self.title = 'OnBoard Air Control UI'
         self.setLayout(QVBoxLayout(self))
-        self.obas = obas
         self.parent = parent
+        self.obas = self.parent.obas
 
         # Init logger
         self.logger = Logger('obaControl', "UI : OBAControl")
 
         # Dynamically generate controls
         _keyStrings = []
-        for _i, _oba in enumerate(self.obas):
-            _ctrl = OBAControl(_oba.name, momentary=_oba.momentary, parent=self)
+        for _i, _oba in enumerate(self.obas.obas):
+            _ctrl = OBAControl(_oba, momentary=_oba.momentary, parent=self)
             exec("self._%s = _ctrl" % _i)
             _ctrl.setIcon(QIcon(Config.icon('oba', _oba.icon)['path']))
             if _oba.active:
@@ -48,7 +48,7 @@ class OBAControlUI(QWidget):
             del _panel
 
     def setOBA(self, name, state):
-        for _oba in self.obas:
+        for _oba in self.obas.obas:
             if _oba.name == name:
                 _oba.active = state
                 self.parent.setOutputPin(_oba.outputPin, state)

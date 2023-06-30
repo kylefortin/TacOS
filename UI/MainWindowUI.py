@@ -13,27 +13,26 @@ from UI.MainUI import MainUI
 from Objects.OSK import OSK
 from Objects import Config
 import sys
-import pickle
 
 
 class MainWindow(QMainWindow):
 
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.title = 'TacOS'
-        self._mainUI = MainUI()
-        self._mainUI.setParent(self)
-        self.setStyleSheet(open(Config.css, 'rt').read())
-        self.setCentralWidget(self._mainUI)
         self._dock = QDockWidget(self)
         self._osk = OSK(rWidget=None)
-        self._osk.setParent(self._dock)
-        self._dock.setTitleBarWidget(QWidget())
-        self._dock.setFloating(True)
-        self._dock.setGeometry(0, 0, 800, 480)
-        self._dock.setWidget(self._osk)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self._dock)
-        self._dock.hide()
+        self._mainUI = MainUI()
+        self.title = 'TacOS'
+        self.mainUI.setParent(self)
+        self.setStyleSheet(open(Config.css, 'rt').read())
+        self.setCentralWidget(self.mainUI)
+        self.osk.setParent(self.dock)
+        self.dock.setTitleBarWidget(QWidget())
+        self.dock.setFloating(True)
+        self.dock.setGeometry(0, 0, 800, 480)
+        self.dock.setWidget(self._osk)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.dock)
+        self.dock.hide()
         self.initUI()
 
     def initUI(self):
@@ -52,8 +51,6 @@ class MainWindow(QMainWindow):
     def osk(self):
         return self._osk
 
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = MainUI()
-    sys.exit(app.exec_())
+    @property
+    def mainUI(self):
+        return self._mainUI

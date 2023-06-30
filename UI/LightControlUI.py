@@ -16,19 +16,19 @@ from Objects.Logger import Logger
 
 class LightControlUI(QWidget):
 
-    def __init__(self, lights, parent):
+    def __init__(self, parent):
         super(LightControlUI, self).__init__()
         self.title = 'Light Control UI'
         self.setLayout(QVBoxLayout(self))
-        self.lights = lights
         self.parent = parent
+        self.lights = self.parent.lights
 
         self.logger = Logger('lightControl', "UI : LightControl")
 
         # Dynamically generate controls
         _keyStrings = []
-        for _i, _light in enumerate(self.lights):
-            _ctrl = LightControl(_light.name, parent=self, strobe=_light.strobe)
+        for _i, _light in enumerate(self.lights.lights):
+            _ctrl = LightControl(_light, parent=self, strobe=_light.strobe)
             exec("self._%s = _ctrl" % _i)
             _ctrl.setParent(self)
             _ctrl.setIcon(QIcon(Config.icon('lights', _light.icon)['path']))
@@ -48,7 +48,7 @@ class LightControlUI(QWidget):
             del _panel
 
     def setLight(self, name, state):
-        for _light in self.lights:
+        for _light in self.lights.lights:
             if _light.name == name:
                 _light.active = state
                 self.parent.setOutputPin(_light.outputPin, state)

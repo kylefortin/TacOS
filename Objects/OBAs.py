@@ -38,6 +38,7 @@ class OBAs(object):
         with open(Config.obaConfig, 'wb') as obacfg:
             pickle.dump(configOBAs, obacfg)
         self.logger.log('Pickled %s OBA elements to local config file.' % i)
+        del configOBAs, i, obacfg
 
     def load(self):
         i = 0
@@ -52,6 +53,7 @@ class OBAs(object):
                 )
                 i += 1
         self.logger.log('Loaded %s OBA elements from local config file.' % i)
+        del i, cfg, key
 
     @property
     def obas(self):

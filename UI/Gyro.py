@@ -103,8 +103,8 @@ class Gyrometer(QWidget):
         self.frontViewTimer.stop()
 
     def calibrate(self):
-        self.calibrationX = sum(self.xData) / len(self.xData)
-        self.calibrationY = sum(self.yData) / len(self.yData)
+        self.calibrationX = sum(self.xData) / len(self.xData) if len(self.xData) > 0 else 0
+        self.calibrationY = sum(self.yData) / len(self.yData) if len(self.yData) > 0 else 0
         file = open(Config.cal, 'wb')
         pickle.dump({'x': self.calibrationX, 'y': self.calibrationY}, file)
         file.close()

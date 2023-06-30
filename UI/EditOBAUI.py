@@ -17,10 +17,10 @@ from Objects.LineEdit import LineEdit
 
 class EditOBAUI(QWidget):
 
-    def __init__(self, oba, parent):
+    def __init__(self, idx, parent):
         super(EditOBAUI, self).__init__()
         self.parent = parent
-        self.oba = oba
+        self.oba = self.parent.obas.obas[idx]
         self.setLayout(QVBoxLayout(self))
         self.layout().setAlignment(Qt.AlignCenter)
 
@@ -31,7 +31,7 @@ class EditOBAUI(QWidget):
         # Init Output Pin dropdown control
         self._outputPinControlLabel = QLabel('Output Pin', self)
         self._outputPinControl = QComboBox(self)
-        for _pin in self.parent.availablePins():
+        for _pin in self.parent.availablePins(self.oba):
             self._outputPinControl.addItem(str(_pin))
         for _i in range(self._outputPinControl.count()):
             if self._outputPinControl.itemText(_i) == str(self.oba.outputPin):

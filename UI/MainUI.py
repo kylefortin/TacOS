@@ -7,8 +7,7 @@ The main UI for the TacOS environment.  Envelops all other window modules in a d
 
 """
 
-import os, pickle
-
+import os
 from AnyQt.QtCore import Qt
 from AnyQt.QtGui import QIcon
 from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, \
@@ -41,13 +40,15 @@ class MainUI(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.left = Config.geometry[0]
-        self.top = Config.geometry[1]
-        self.width = Config.geometry[2]
-        self.height = Config.geometry[3]
-        self.setLayout(QHBoxLayout(self))
         # Init logger
         self._logger = Logger('mainUI', 'UI : Main')
+        # Init geometry
+        _geometry = {"left": Config.geometry[0], "top": Config.geometry[1],
+                     "width": Config.geometry[2], "height": Config.geometry[3]}
+        for k, v in _geometry.items():
+            exec("%s = v" % k)
+        del _geometry
+        self.setLayout(QHBoxLayout(self))
         # Read in user prefs
         self._prefs = Config.getPrefs()
         # Load configured objects
@@ -63,95 +64,87 @@ class MainUI(QWidget):
             self.prefs.get("i2cDebug", False)
         )
         # Create menu frame
-        self._sidebarMenu = QFrame(self)
-        self._sidebarMenu.layout = QVBoxLayout(self._sidebarMenu)
-        self._sidebarMenu.setMaximumWidth(Config.menuWidth + 50)
-        self._sidebarMenu.setMaximumHeight(Config.geometry[3])
-        self._sidebarMenu.setStyleSheet("QFrame{border-right: 1px solid black}")
+        sidebarMenu = QFrame(self)
+        sidebarMenu.layout = QVBoxLayout(sidebarMenu)
+        sidebarMenu.setMaximumWidth(Config.menuWidth + 50)
+        sidebarMenu.setMaximumHeight(Config.geometry[3])
+        sidebarMenu.setStyleSheet("QFrame{border-right: 1px solid black}")
         # Create menu
-        _container = QWidget()
-        _container.layout = QVBoxLayout()
-        _container.setLayout(_container.layout)
-        _scroll = QScrollArea()
-        _scroll.setWidget(_container)
-        _scroll.setWidgetResizable(True)
-        self._sidebarMenu.layout.addWidget(_scroll)
-        for _key in ['enableOBA', 'enableLighting', 'enableTracControl', 'enableCamViewer', 'enableGyro']:
-            if self.prefs.get(_key, False):
-                _title = {'enableOBA': 'control_oba',
-                          'enableLighting': 'control_light',
-                          'enableTracControl': 'control_trac',
-                          'enableCamViewer': 'control_cam',
-                          'enableGyro': 'control_gyro'}[_key]
-                _icon = {'enableOBA': Config.faIcon("wind"),
-                         'enableLighting': Config.faIcon("lightbulb"),
-                         'enableTracControl': Config.icon("tracControl", "rearDiff")['path'],
-                         'enableCamViewer': Config.faIcon("camera"),
-                         'enableGyro': Config.faIcon("truck-pickup")}[_key]
-                _button = MenuButton(panel=_title, parent=self)
-                _button.setIcon(QIcon(_icon))
-                _container.layout.addWidget(_button)
-        _settingsButton = MenuButton(panel="config_prefs", parent=self)
-        _settingsButton.setIcon(QIcon(Config.faIcon("user-cog")))
-        _container.layout.addWidget(_settingsButton)
-        del _settingsButton, _title, _icon, _button
+        container = QWidget()
+        container.layout = QVBoxLayout()
+        container.setLayout(container.layout)
+        scroll = QScrollArea()
+        scroll.setWidget(container)
+        scroll.setWidgetResizable(True)
+        sidebarMenu.layout.addWidget(scroll)
+        del scroll
+        configs = {"enableOBA": ("control_oba", Config.faIcon("wind")),
+                   "enableLighting": ("control_light", Config.faIcon("lightbulb")),
+                   "enableTracControl": ("control_trac", Config.icon("tracControl", "rearDiff")['path']),
+                   "enableCamViewer": ("control_cam", Config.faIcon("camera")),
+                   "enableGyro": ("control_gyro", Config.faIcon("truck-pickup"))}
+        for k, v in configs.items():
+            if self.prefs.get(k, False):
+                button = MenuButton(panel=v[0], parent=self)
+                button.setIcon(QIcon(v[1]))
+                container.layout.addWidget(button)
+        del button, configs, k, v
+        settingsButton = MenuButton(panel="config_prefs", parent=self)
+        settingsButton.setIcon(QIcon(Config.faIcon("user-cog")))
+        container.layout.addWidget(settingsButton)
+        del settingsButton, container
         # Create version info label
-        self._version = QLabel('v%s' % Config.version, self)
-        self._version.setAlignment(Qt.AlignCenter)
-        self._version.setFixedWidth(Config.menuWidth)
-        self._version.setStyleSheet("QLabel{border: none}")
-        self._sidebarMenu.layout.addWidget(self._version)
+        version = QLabel('v%s' % Config.version, self)
+        version.setAlignment(Qt.AlignCenter)
+        version.setFixedWidth(Config.menuWidth)
+        version.setStyleSheet("QLabel{border: none}")
+        sidebarMenu.layout.addWidget(version)
+        del version
         # Create OSK button
-        self._oskButton = QPushButton('', self)
-        self._oskButton.setIcon(QIcon(Config.faIcon('keyboard')))
-        self._oskButton.setFixedWidth(Config.menuWidth)
-        self._oskButton.clicked.connect(self.showOSK)
-        self._sidebarMenu.layout.addWidget(self._oskButton)
+        oskButton = QPushButton('', self)
+        oskButton.setIcon(QIcon(Config.faIcon('keyboard')))
+        oskButton.setFixedWidth(Config.menuWidth)
+        oskButton.clicked.connect(self.showOSK)
+        sidebarMenu.layout.addWidget(oskButton)
+        del oskButton
         # Add menu frame to main UI
-        self.layout().addWidget(self._sidebarMenu)
+        self.layout().addWidget(sidebarMenu)
         # Create main UI panel
         self._mainPanel = QWidget(self)
-        self._mainPanel.setLayout(QVBoxLayout(self._mainPanel))
-        self.layout().addWidget(self._mainPanel)
+        self.mainPanel.setLayout(QVBoxLayout(self.mainPanel))
+        self.layout().addWidget(self.mainPanel)
         # Init default UI
-        for _ in ['enableOBA', 'enableLighting', 'enableTracControl', 'enableCamViewer', 'enableGyro']:
-            _cUI = None
-            _uiName = None
-            if self.prefs.get(_, False):
-                if _ == 'enableOBA':
-                    _cUI = OBAControlUI(self.obas.obas, self)
-                    _uiName = 'control_oba'
-                elif _ == 'enableLighting':
-                    _cUI = LightControlUI(self.lights.lights, self)
-                    _uiName = 'control_light'
-                elif _ == 'enableTracControl':
-                    _cUI = TracControlUI(self.tracs.tracs, self)
-                    _uiName = 'control_trac'
-                elif _ == 'enableCamViewer':
-                    _cUI = CamViewer(0)
-                    _uiName = 'control_cam'
-                elif _ == 'enableGryo':
-                    _cUI = Gyrometer()
-                    _uiName = 'control_gyro'
-            if _cUI is not None:
+        cUI = None
+        uiName = None
+        modules = {'enableOBA': (OBAControlUI, [self], 'control_oba'),
+                   'enableLighting': (LightControlUI, [self], 'control_light'),
+                   'enableTracControl': (TracControlUI, [self], "control_trac"),
+                   'enableCamViewer': (CamViewer, [0], "control_cam"),
+                   'enableGyro': (Gyrometer, [self], "control_gyro")}
+        for k, v in modules.items():
+            v: tuple[type, list, str]
+            if self.prefs.get(k, False):
+                cUI = v[0](*v[1])
+                uiName = v[2]
                 break
-        if _cUI is None:
-            _cUI = UserPrefUI(self.prefs, parent=self)
-            _uiName = 'config_prefs'
-        self._currentUI = {'name': _uiName, 'obj': _cUI}
-        _cUI.setParent(self)
-        self._mainPanel.layout().addWidget(_cUI)
-        _cUI.show()
+        if cUI is None:
+            cUI = UserPrefUI(self.prefs, self)
+            uiName = 'config_prefs'
+        self._currentUI = {'name': uiName, 'obj': cUI}
+        del cUI, uiName
+        self.currentUI['obj'].setParent(self)
+        self.mainPanel.layout().addWidget(self.currentUI['obj'])
+        self.currentUI['obj'].show()
         # Create button panel
         self._btnPanel = QWidget(self)
-        self._btnPanel.setLayout(QHBoxLayout(self._btnPanel))
-        self._mainPanel.layout().addWidget(self._btnPanel)
+        self.btnPanel.setLayout(QHBoxLayout(self.btnPanel))
+        self.mainPanel.layout().addWidget(self.btnPanel)
         # Create Config button
         self._configButton = QPushButton('Configure', self)
         self._configButton.setFixedHeight(50)
         self._configButton.setIcon(QIcon(Config.faIcon('cog')))
         self._configButton.clicked.connect(self.__configButtonAction)
-        self._btnPanel.layout().addWidget(self._configButton)
+        self.btnPanel.layout().addWidget(self._configButton)
         # Create Night Mode button
         self._nightModeButton = QPushButton('', self)
         self._nightModeButton.setFixedHeight(50)
@@ -159,7 +152,7 @@ class MainUI(QWidget):
             QIcon({True: Config.faIcon('sun'), False: Config.faIcon('moon')}[self.prefs['nightMode']]))
         self._nightModeButton.setText({True: 'Day Mode', False: 'Night Mode'}[self.prefs['nightMode']])
         self._nightModeButton.clicked.connect(self.toggleNightMode)
-        self._btnPanel.layout().addWidget(self._nightModeButton)
+        self.btnPanel.layout().addWidget(self._nightModeButton)
         self.setNightMode(self.prefs.get('nightMode'))
 
     def closeEvent(self, event):
@@ -167,27 +160,37 @@ class MainUI(QWidget):
         self.i2cBus.deEnergizeAll()
         super(MainUI, self).closeEvent(event)
 
-    def availablePins(self):
-        _pins = Config.outputPinList
+    def availablePins(self, obj=None):
         if not self.prefs.get('allowDuplicatePins', False):
-            for _ in [self.lights.lights, self.obas.obas, self.tracs.tracs]:
-                for __ in _:
-                    if __.outputPin in _pins:
-                        _pins.remove(__.outputPin)
-        _pins.sort()
-        return _pins
+            used_pins = list()
+            for obj_list in (self.lights.lights, self.obas.obas, self.tracs.tracs):
+                used_pins.extend([obj.outputPin for obj in obj_list])
+            pins = [pin for pin in Config.outputPinList if pin not in used_pins]
+            del used_pins, obj_list
+            if obj is not None:
+                pins.append(obj.outputPin)
+        else:
+            pins = Config.outputPinList
+        pins.sort()
+        return pins
 
-    def setOutputPin(self, pin, state):
-        _fx = self.i2cBus.energizeRelay if state else self.i2cBus.deEnergizeRelay
-        _fx(pin)
+    def setOutputPin(self, relay: int, state: bool):
+        if state:
+            self.i2cBus.energizeRelay(relay)
+        else:
+            self.i2cBus.deEnergizeRelay(relay)
 
     def disableConfigButtons(self):
-        for _ in [self.configButton]:
-            _.setEnabled(False)
+        objs = [self.configButton]
+        for obj in objs:
+            obj.setEnabled(False)
+        del objs, obj
 
     def enableConfigButtons(self):
-        for _ in [self.configButton]:
-            _.setEnabled(True)
+        objs = [self.configButton]
+        for obj in objs:
+            obj.setEnabled(True)
+        del objs, obj
 
     def loadUI(self, ui, idx=None):
         if 'cam' in self.currentUI['name']:
@@ -198,55 +201,53 @@ class MainUI(QWidget):
         self.currentUI['obj'].hide()
         self.mainPanel.layout().removeWidget(self.currentUI['obj'])
         self.mainPanel.layout().removeWidget(self.btnPanel)
-        _mode = ui.split('_')[0]
-        _type = ui.split('_')[1]
-        _ui = None
-        if _mode == 'control':
-            if _type == 'gyro':
+        ui_mode = ui.split('_')[0]
+        ui_type = ui.split('_')[1]
+        available_uis = {
+            "control": {
+                "light": (LightControlUI, [self]),
+                "oba": (OBAControlUI, [self]),
+                "trac": (TracControlUI, [self]),
+                "cam": (CamViewer, [0]),
+                "gyro": (Gyrometer, [self])
+            },
+            "config": {
+                "light": (LightConfigUI, [self]),
+                "oba": (OBAConfigUI, [self]),
+                "trac": (TracConfigUI, [self]),
+                "prefs": (UserPrefUI, [self])
+            },
+            "edit": {
+                "light": (EditLightUI, [idx, self]),
+                "oba": (EditOBAUI, [idx, self]),
+                "trac": (EditTracUI, [idx, self])
+            },
+            "create": {
+                "light": (AddLightUI, [self]),
+                "oba": (AddOBAUI, [self]),
+                "trac": (AddTracUI, [self])
+            }
+        }
+        v = available_uis.get(ui_mode, {}).get(ui_type, tuple())
+        v: tuple[type, list]
+        new_ui = v[0](*v[1])
+        new_ui.setParent(self)
+        # UI special cases
+        if ui_mode == "control":
+            if ui_type == "gyro":
                 self.configButton.setText("Calibrate")
+                new_ui.startSerial()
+                new_ui.startRotation()
             else:
                 self.configButton.setText("Configure")
-            if _type == 'light':
-                _ui = LightControlUI(self.lights.lights, self)
-            elif _type == 'oba':
-                _ui = OBAControlUI(self.obas.obas, self)
-            elif _type == 'trac':
-                _ui = TracControlUI(self.tracs.tracs, self)
-            elif _type == 'cam':
-                _ui = CamViewer(0)
-                _ui.start()
-            elif _type == 'gyro':
-                _ui = Gyrometer(parent=self)
-                _ui.startSerial()
-                _ui.startRotation()
-        elif _mode == 'config':
-            if _type == 'light':
-                _ui = LightConfigUI(self.lights.lights, self)
-            elif _type == 'oba':
-                _ui = OBAConfigUI(self.obas.obas, self)
-            elif _type == 'trac':
-                _ui = TracConfigUI(self.tracs.tracs, self)
-            elif _type == 'prefs':
-                _ui = UserPrefUI(self.prefs, self)
-        elif _mode == 'edit':
-            if _type == 'light':
-                _ui = EditLightUI(self.lights.lights[idx], self)
-            elif _type == 'oba':
-                _ui = EditOBAUI(self.obas.obas[idx], self)
-            elif _type == 'trac':
-                _ui = EditTracUI(self.tracs.tracs[idx], self)
-        elif _mode == 'create':
-            if _type == 'light':
-                _ui = AddLightUI(self)
-            elif _type == 'oba':
-                _ui = AddOBAUI(self)
-            elif _type == 'trac':
-                _ui = AddTracUI(self)
-        if _ui is not None:
-            _ui.setParent(self)
-            self.mainPanel.layout().addWidget(_ui)
-            _ui.show()
-            self.currentUI = {'name': ui, 'obj': _ui}
+            if ui_type == "cam":
+                new_ui.start()
+                self.disableConfigButtons()
+            else:
+                self.enableConfigButtons()
+        self.mainPanel.layout().addWidget(new_ui)
+        new_ui.show()
+        self.currentUI = {'name': ui, 'obj': new_ui}
         self.mainPanel.layout().addWidget(self.btnPanel)
 
     def toggleNightMode(self):

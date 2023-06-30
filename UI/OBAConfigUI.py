@@ -20,13 +20,13 @@ from UI.EditOBAUI import EditOBAUI
 class OBAConfigUI(QWidget):
     keyPressed = pyqtSignal(int)
 
-    def __init__(self, obas, parent):
+    def __init__(self, parent):
         super(OBAConfigUI, self).__init__()
         self.title = 'OnBoard Air Configuration'
         self.setLayout(QVBoxLayout(self))
         self.layout().setAlignment(Qt.AlignCenter)
         self.parent = parent
-        self.obas = obas
+        self.obas = self.parent.obas
 
         # Init logger
         self.logger = Logger('obaConfig', "UI : OBAConfig")
@@ -56,7 +56,7 @@ class OBAConfigUI(QWidget):
         self.layout().addWidget(self._closeBtn)
 
         # Populate table
-        for _oba in self.obas:
+        for _oba in self.obas.obas:
             _i = self._obaList.rowCount()
             self._obaList.setRowCount(_i + 1)
             for _c, _item in enumerate([_oba.name, str(_oba.outputPin), str(_oba.momentary),
@@ -84,8 +84,8 @@ class OBAConfigUI(QWidget):
                 rows.append(i.row())
         rows.sort(reverse=True)
         for row in rows:
-            self.parent.obas.rmOBA(row)
-        self.parent.obas.save()
+            self.obas.rmOBA(row)
+        self.obas.save()
         self.parent.loadUI('config_oba')
 
     def __editOBA(self):
