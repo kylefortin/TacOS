@@ -20,12 +20,12 @@ import os
 
 class UserPrefUI(QWidget):
 
-    def __init__(self, prefs, parent):
+    def __init__(self, parent):
         super(UserPrefUI, self).__init__()
         self.title = 'User Preferences'
         self.setLayout(QVBoxLayout(self))
         self.parent = parent
-        self.prefs = prefs
+        self.prefs = self.parent.prefs
 
         # Init logger
         self.logger = Logger('userPrefsUI', 'UI : User Preferences')
@@ -76,20 +76,20 @@ class UserPrefUI(QWidget):
         for control in ['startMaximized', 'allowDuplicatePins', 'enableOBA',
                         'enableLighting', 'enableTracControl', 'enableCamViewer', 'enableGyro',
                         'i2cDebug', 'debugLogging']:
-            if control in prefs.keys():
-                exec('self._%s.setChecked(prefs["%s"])' % (control, control))
+            if control in self.prefs.keys():
+                exec('self._%s.setChecked(self.prefs["%s"])' % (control, control))
             else:
                 if control in ['enableOBA', 'enableLighting', 'enableTracControl',
                                'enableCamViewer', 'enableGyro']:
                     exec('self._%s.setChecked(True)' % control)
                 else:
                     exec('self._%s.setChecked(False)' % control)
-        if 'i2cAddress' in prefs.keys():
-            self._i2cAddress.setText(prefs['i2cAddress'])
+        if 'i2cAddress' in self.prefs.keys():
+            self._i2cAddress.setText(self.prefs['i2cAddress'])
         else:
             self._i2cAddress.setText('0x20')
-        if 'i2cBus' in prefs.keys():
-            self._i2cBus.setCurrentText(str(prefs['i2cBus']))
+        if 'i2cBus' in self.prefs.keys():
+            self._i2cBus.setCurrentText(str(self.prefs['i2cBus']))
         else:
             self._i2cBus.setCurrentIndex(0)
 

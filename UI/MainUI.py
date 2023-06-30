@@ -235,16 +235,18 @@ class MainUI(QWidget):
         # UI special cases
         if ui_mode == "control":
             if ui_type == "gyro":
-                self.configButton.setText("Calibrate")
                 new_ui.startSerial()
                 new_ui.startRotation()
-            else:
-                self.configButton.setText("Configure")
-            if ui_type == "cam":
-                new_ui.start()
-                self.disableConfigButtons()
-            else:
-                self.enableConfigButtons()
+        if ui_type == "cam":
+            new_ui.start()
+        if ui_type in ["cam", "prefs"]:
+            self.disableConfigButtons()
+        else:
+            self.enableConfigButtons()
+        if ui_type == "gyro":
+            self.configButton.setText("Calibrate")
+        else:
+            self.configButton.setText("Configure")
         self.mainPanel.layout().addWidget(new_ui)
         new_ui.show()
         self.currentUI = {'name': ui, 'obj': new_ui}
