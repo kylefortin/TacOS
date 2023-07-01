@@ -12,6 +12,7 @@ from AnyQt.QtGui import QIcon
 from Objects import Config, Tools
 from Objects.LightControl import LightControl
 from Objects.Logger import Logger
+from Objects.Light import Light
 
 
 class LightControlUI(QWidget):
@@ -22,9 +23,7 @@ class LightControlUI(QWidget):
         self.setLayout(QVBoxLayout(self))
         self.parent = parent
         self.lights = self.parent.lights
-
         self.logger = Logger('lightControl', "UI : LightControl")
-
         # Dynamically generate controls
         _keyStrings = []
         for _i, _light in enumerate(self.lights.lights):
@@ -37,7 +36,6 @@ class LightControlUI(QWidget):
             _keyStrings.append('_%s' % _i)
         oList = Tools.group(Config.lightColumns, _keyStrings)
         del _keyStrings
-
         # Dynamically generate panel layout using grouped tuples
         for oTuple in oList:
             _panel = QWidget(self)
@@ -47,9 +45,5 @@ class LightControlUI(QWidget):
             self.layout().addWidget(_panel)
             del _panel
 
-    def setLight(self, name, state):
-        for _light in self.lights.lights:
-            if _light.name == name:
-                _light.active = state
-                self.parent.setOutputPin(_light.outputPin, state)
-                break
+    def setLight(self, light: Light, state):
+        light.active = self.parent.setOutputPin(light.outputPin, state)

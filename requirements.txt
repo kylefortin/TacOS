@@ -2,5 +2,6 @@ confapp
 numpy
 opencv-python
 setuptools
+smbus
 smbus2
 AnyQt

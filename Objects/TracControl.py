@@ -27,7 +27,7 @@ class TracControl(QPushButton):
 
     def __callback(self):
         if self.parent is not None:
-            self.parent.setTrac(self.text(), self.isChecked())
+            self.parent.setTrac(self.trac, self.isChecked())
 
     @property
     def trac(self):

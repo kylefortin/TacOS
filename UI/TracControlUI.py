@@ -12,6 +12,7 @@ from AnyQt.QtGui import QIcon
 from Objects import Config, Tools
 from Objects.TracControl import TracControl
 from Objects.Logger import Logger
+from Objects.Trac import Trac
 
 
 class TracControlUI(QWidget):
@@ -48,9 +49,5 @@ class TracControlUI(QWidget):
             self.layout().addWidget(_panel)
             del _panel
 
-    def setTrac(self, name, state):
-        for _trac in self.tracs.tracs:
-            if _trac.name == name:
-                _trac.active = state
-                self.parent.setOutputPin(_trac.outputPin, state)
-                break
+    def setTrac(self, trac: Trac, state):
+        trac.active = self.parent.setOutputPin(trac.outputPin, state)

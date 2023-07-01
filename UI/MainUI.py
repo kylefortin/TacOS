@@ -58,11 +58,7 @@ class MainUI(QWidget):
         for _ in (self.obas, self.lights, self.tracs):
             _.load()
         # Init I2C control
-        self._i2cBus = I2CBus(
-            self.prefs.get("i2cBus", Config.defaultI2CBus),
-            self.prefs.get('i2cAddress', Config.defaultI2CAddress),
-            self.prefs.get("i2cDebug", False)
-        )
+        self._i2cBus = I2CBus(self)
         # Create menu frame
         sidebarMenu = QFrame(self)
         sidebarMenu.layout = QVBoxLayout(sidebarMenu)
@@ -176,9 +172,9 @@ class MainUI(QWidget):
 
     def setOutputPin(self, relay: int, state: bool):
         if state:
-            self.i2cBus.energizeRelay(relay)
+            return self.i2cBus.energizeRelay(relay)
         else:
-            self.i2cBus.deEnergizeRelay(relay)
+            return self.i2cBus.deEnergizeRelay(relay)
 
     def disableConfigButtons(self):
         objs = [self.configButton]

@@ -8,7 +8,7 @@ Object class for set up communications with the I2C bus on RasPi.
 Based on Relay16 by IAScaled.
 """
 
-import time
+from Objects import Config
 
 try:
     from smbus import SMBus
@@ -29,36 +29,30 @@ def checkRelayInputValue(value):
 
 class I2CBus(object):
 
-    def __init__(self, bus=1, address='0x20', debug=False):
-
+    def __init__(self, parent):
         # Init logger
         self._logger = Logger('i2cBus', 'I2CBus : Controller')
-
+        self.parent = parent
         # Set debug state
-        self._debug = debug
-
+        self._debug = self.parent.prefs.get("i2cDebug", True)
         # Init I2C comms
-        if not self._debug:
-            self._bus = SMBus(bus)
+        if not self.debug:
+            self._bus = SMBus(self.parent.prefs.get("i2cBus", Config.defaultI2CBus))
         else:
             self._bus = None
-        self._address = address
+        self._address = self.parent.prefs.get("i2cAddress", Config.defaultI2CAddress)
         self._state = 0x0000
-
         # Clear all relays at startup
         self.deEnergizeAll()
 
     def deEnergizeAll(self):
-        self._state = 0x0000
-        if not self._debug:
-            self._logger.log('De-energizing all relays.')
-            success = False
-            while not success:
-                success = self.__sendI2CData()
-                time.sleep(0.1)
+        self.state = 0x0000
+        if not self.debug:
+            self.logger.log('De-energizing all relays.')
+            return self.__sendI2CData()
         else:
             print('De-energizing all relays.')
-            print('I2C Bus state : %s' % str(bin(self._state)))
+            print('I2C Bus state : %s' % str(bin(self.state)))
 
     def energizeRelay(self, relay):
         """
@@ -68,16 +62,13 @@ class I2CBus(object):
         :return: None
         """
         if checkRelayInputValue(relay):
-            self._state |= 1 << (relay - 1)
-            if not self._debug:
-                self._logger.log('Energizing relay @ position %s' % relay)
-                success = False
-                while not success:
-                    success = self.__sendI2CData()
-                    time.sleep(0.1)
+            self.state |= 1 << (relay - 1)
+            if not self.debug:
+                self.logger.log('Energizing relay @ position %s' % relay)
+                return self.__sendI2CData()
             else:
                 print('Energizing relay @ position %s' % relay)
-                print('I2C Bus state : %s' % str(bin(self._state)))
+                print('I2C Bus state : %s' % str(bin(self.state)))
 
     def deEnergizeRelay(self, relay):
         """
@@ -87,13 +78,10 @@ class I2CBus(object):
         :return: None
         """
         if checkRelayInputValue(relay):
-            self._state &= ~(1 << (relay - 1))
-            if not self._debug:
-                self._logger.log('De-energizing relay @ position %s' % relay)
-                success = False
-                while not success:
-                    success = self.__sendI2CData()
-                    time.sleep(0.1)
+            self.state &= ~(1 << (relay - 1))
+            if not self.debug:
+                self.logger.log('De-energizing relay @ position %s' % relay)
+                return self.__sendI2CData()
             else:
                 print('De-energizing relay @ position %s' % relay)
                 print('I2C Bus state : %s' % str(bin(self._state)))
@@ -117,7 +105,7 @@ class I2CBus(object):
         return self._debug
 
     @debug.setter
-    def debug(self, value):
+    def debug(self, value: bool):
         if not isinstance(value, bool):
             raise TypeError('Debug value must be of type bool, %s provided.' % type(value))
         else:
@@ -135,8 +123,12 @@ class I2CBus(object):
     def state(self):
         return self._state
 
+    @state.setter
+    def state(self, state: int):
+        self._state = state
+
     @bus.setter
-    def bus(self, value):
+    def bus(self, value: int):
         """
         Set the I2C bus to use.
         :param value: Bus parameter to set.
@@ -146,7 +138,7 @@ class I2CBus(object):
         self._bus = value
 
     @address.setter
-    def address(self, value):
+    def address(self, value: str):
         """
         Set the I2C address to use.
         :param value: I2C address.

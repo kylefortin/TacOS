@@ -42,12 +42,12 @@ class OBAControl(QPushButton):
 
     def __callback(self):
         if self.parent is not None:
-            self.parent.setOBA(self.text(), self.isChecked())
+            self.parent.setOBA(self.oba, self.isChecked())
 
     def __onPress(self):
         if not self.block:
             if self.parent is not None:
-                self.parent.setOBA(self.text(), True)
+                self.parent.setOBA(self.oba, True)
         self.block = False
         self.setCheckable(False)
         if nowMillis() - self.lastPress <= 500:
@@ -58,7 +58,7 @@ class OBAControl(QPushButton):
     def __onRelease(self):
         if not self.block:
             if self.parent is not None:
-                self.parent.setOBA(self.text(), False)
+                self.parent.setOBA(self.oba, False)
 
     def __doublePress(self):
         self.setCheckable(True)

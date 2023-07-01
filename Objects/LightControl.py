@@ -42,7 +42,7 @@ class LightControl(QPushButton):
         if self.strobeTimer.isActive():
             self.strobeTimer.stop()
         if self.parent is not None:
-            self.parent.setLight(self.text(), self.isChecked())
+            self.parent.setLight(self.light, self.isChecked())
             self.strobeState = False
             if self.light.strobe:
                 if nowMillis() - self.lastPress <= 500:
@@ -53,7 +53,7 @@ class LightControl(QPushButton):
     def __strobeEffect(self):
         if self.parent is not None:
             self.strobeState = not self.strobeState
-            self.parent.setLight(self.text(), self.strobeState)
+            self.parent.setLight(self.light, self.strobeState)
 
     @property
     def light(self):

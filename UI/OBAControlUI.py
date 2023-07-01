@@ -12,6 +12,7 @@ from AnyQt.QtGui import QIcon
 from Objects import Config, Tools
 from Objects.OBAControl import OBAControl
 from Objects.Logger import Logger
+from Objects.OBA import OBA
 
 
 class OBAControlUI(QWidget):
@@ -47,9 +48,5 @@ class OBAControlUI(QWidget):
             self.layout().addWidget(_panel)
             del _panel
 
-    def setOBA(self, name, state):
-        for _oba in self.obas.obas:
-            if _oba.name == name:
-                _oba.active = state
-                self.parent.setOutputPin(_oba.outputPin, state)
-                break
+    def setOBA(self, oba: OBA, state):
+        oba.active = self.parent.setOutputPin(oba.outputPin, state)
