@@ -11,7 +11,7 @@ import cv2
 import time
 from Objects import Config
 from Objects.ImageLabel import ImageLabel
-from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QMainWindow, QLabel
+from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QMainWindow, QLabel, QPushButton
 from AnyQt.QtGui import QImage, QPixmap
 from AnyQt.QtCore import QTimer, Qt
 
@@ -24,23 +24,46 @@ class CamViewer(QWidget):
         self._timer.timeout.connect(self.nextFrameSlot)
         self._frameRate = Config.camFrameRate
         self._image = QImage()
-        self._cap = cv2.VideoCapture(*args)
-        self._cap.set(cv2.CAP_PROP_FRAME_WIDTH, self._image.width())
-        self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self._image.height())
-        self._cap.set(cv2.CAP_PROP_FPS, Config.camFrameRate)
-        self.layout = QVBoxLayout(self)
+        self._cap = None
+        self.layout = QHBoxLayout(self)
         self.setLayout(self.layout)
         self._isImageFullscreen = False
+        self._stopped = True
         self._fullScreenImage = None
+        container = QWidget()
+        container.layout = QVBoxLayout()
+        container.setLayout(container.layout)
         self._page = ImageLabel(self)
-        self._page.setAlignment(Qt.AlignCenter)
-        self._page.setMaximumHeight(Config.camHeight)
-        self._page.mReleased.connect(self.fullscreen)
-        self.layout.addWidget(self._page)
+        self.page.setAlignment(Qt.AlignCenter)
+        self.page.setMaximumHeight(Config.camHeight)
+        self.page.mReleased.connect(self.fullscreen)
+        container.layout.addWidget(self.page)
         self._frameLabel = QLabel()
-        self._frameLabel.setAlignment(Qt.AlignCenter)
+        self.frameLabel.setAlignment(Qt.AlignCenter)
         self._time = int(round(time.time() * 1000))
-        self.layout.addWidget(self._frameLabel)
+        container.layout.addWidget(self.frameLabel)
+        self.layout.addWidget(container)
+        del container
+        container = QWidget()
+        container.layout = QVBoxLayout()
+        container.setLayout(container.layout)
+        for n in range(Config.maxCamConnections):
+            button = QPushButton("%s" % n)
+            button.clicked.connect(lambda state, x=n: self.setCapture(x))
+            container.layout.addWidget(button)
+        self.layout.addWidget(container)
+        del container, button, n
+        self.setCapture(*args)
+
+    def setCapture(self, index: int):
+        if self.cap is not None:
+            self.stop()
+        self.cap = cv2.VideoCapture(index)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self._image.width())
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self._image.height())
+        self.cap.set(cv2.CAP_PROP_FPS, Config.camFrameRate)
+        if self.cap.isOpened():
+            self.start()
 
     def fullscreen(self):
         if not self.isImageFullscreen:
@@ -52,6 +75,7 @@ class CamViewer(QWidget):
             image.setAlignment(Qt.AlignCenter)
             image.setObjectName("image")
             image.mReleased.connect(cam.parent().fullscreen)
+            # noinspection PyArgumentList
             image.setPixmap(QPixmap.fromImage(cam.parent().image))
             panel.layout.addWidget(image)
             cam.setCentralWidget(panel)
@@ -63,6 +87,7 @@ class CamViewer(QWidget):
             self.fullScreenImage = None
             self.isImageFullscreen = False
 
+    # noinspection PyArgumentList
     def nextFrameSlot(self):
         t = int(round(time.time() * 1000))
         ret, f = self.cap.read()
@@ -78,17 +103,19 @@ class CamViewer(QWidget):
             img = self.fullScreenImage.findChild(ImageLabel, "image")
             img.setPixmap(QPixmap.fromImage(self.image.scaledToHeight(img.height() * 0.95)))
         else:
-            self._page.setPixmap(QPixmap.fromImage(self.image.scaledToHeight(Config.camHeight)))
-        self._frameLabel.setText("FPS: " + str(int(1000 / (t - self._time))))
-        self._time = t
+            self.page.setPixmap(QPixmap.fromImage(self.image.scaledToHeight(Config.camHeight)))
+        self.frameLabel.setText("FPS: " + str(int(1000 / (t - self.time))))
+        self.time = t
 
     def start(self):
         self.timer.start(1000.0 / self.frameRate)
-        self._page.repaint()
+        self.page.repaint()
+        self.stopped = False
 
     def stop(self):
         self.timer.stop()
         self.cap.release()
+        self.stopped = True
 
     def deleteLater(self):
         self.cap.release()
@@ -99,7 +126,7 @@ class CamViewer(QWidget):
         return self._frameRate
 
     @frameRate.setter
-    def frameRate(self, value):
+    def frameRate(self, value: int):
         if not isinstance(value, int):
             raise TypeError('Supplied frame rate is not of type (int): %s' % type(value).__name__)
         else:
@@ -108,6 +135,13 @@ class CamViewer(QWidget):
     @property
     def cap(self):
         return self._cap
+
+    @cap.setter
+    def cap(self, value: cv2.VideoCapture):
+        if not isinstance(value, cv2.VideoCapture) and value is not None:
+            raise TypeError("Supplied value must be of type: cv2.VideoCapture.")
+        else:
+            self._cap = value
 
     @property
     def timer(self):
@@ -118,9 +152,9 @@ class CamViewer(QWidget):
         return self._image
 
     @image.setter
-    def image(self, value):
+    def image(self, value: QImage):
         if not isinstance(value, QImage):
-            raise TypeError('Supplied value is not of type (QImage): %s' % type(value).__name__)
+            raise TypeError('Supplied value must be of type: QImage.')
         else:
             self._image = value
 
@@ -129,9 +163,9 @@ class CamViewer(QWidget):
         return self._isImageFullscreen
 
     @isImageFullscreen.setter
-    def isImageFullscreen(self, value):
+    def isImageFullscreen(self, value: bool):
         if not isinstance(value, bool):
-            raise TypeError('Supplied value is not of type (bool): %s' % type(value).__name__)
+            raise TypeError('Supplied value must be of type: bool.')
         else:
             self._isImageFullscreen = value
 
@@ -140,9 +174,9 @@ class CamViewer(QWidget):
         return self._fullScreenImage
 
     @fullScreenImage.setter
-    def fullScreenImage(self, value):
+    def fullScreenImage(self, value: QMainWindow):
         if not isinstance(value, QMainWindow) and not isinstance(value, type(None)):
-            raise TypeError('Supplied value is not of type (QMainWindow): %s' % type(value).__name__)
+            raise TypeError('Supplied value must be of type: QMainWindow.')
         else:
             self._fullScreenImage = value
 
@@ -151,8 +185,28 @@ class CamViewer(QWidget):
         return self._stopped
 
     @stopped.setter
-    def stopped(self, value):
+    def stopped(self, value: bool):
         if not isinstance(value, bool):
-            raise TypeError('Supplied value is not of type (bool): %s' % type(value).__name__)
+            raise TypeError('Supplied value must be of type: bool.')
         else:
             self._stopped = value
+
+    @property
+    def time(self):
+        return self._time
+
+    @time.setter
+    def time(self, value: int):
+        if isinstance(value, float):
+            value = int(value)
+        elif not isinstance(value, int):
+            raise TypeError("Supplied value must be of type: int.")
+        self._time = value
+
+    @property
+    def frameLabel(self):
+        return self._frameLabel
+
+    @property
+    def page(self):
+        return self._page

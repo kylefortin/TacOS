@@ -47,6 +47,7 @@ iconSize = 50
 dayBright = 255
 nightBright = 63
 camFrameRate = 30
+maxCamConnections = 4
 strobeRate = 0.5
 defaultI2CAddress = "0x20"
 defaultI2CBus = 1
