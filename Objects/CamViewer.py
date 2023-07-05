@@ -11,7 +11,7 @@ import cv2
 import time
 from Objects import Config
 from Objects.ImageLabel import ImageLabel
-from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QMainWindow, QLabel, QPushButton
+from AnyQt.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QMainWindow, QLabel
 from AnyQt.QtGui import QImage, QPixmap
 from AnyQt.QtCore import QTimer, Qt
 
@@ -24,46 +24,23 @@ class CamViewer(QWidget):
         self._timer.timeout.connect(self.nextFrameSlot)
         self._frameRate = Config.camFrameRate
         self._image = QImage()
-        self._cap = None
-        self.layout = QHBoxLayout(self)
+        self._cap = cv2.VideoCapture(*args)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self._image.width())
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self._image.height())
+        self.cap.set(cv2.CAP_PROP_FPS, Config.camFrameRate)
+        self.layout = QVBoxLayout(self)
         self.setLayout(self.layout)
         self._isImageFullscreen = False
         self._stopped = True
         self._fullScreenImage = None
-        container = QWidget()
-        container.layout = QVBoxLayout()
-        container.setLayout(container.layout)
         self._page = ImageLabel(self)
         self.page.setAlignment(Qt.AlignCenter)
         self.page.setMaximumHeight(Config.camHeight)
         self.page.mReleased.connect(self.fullscreen)
-        container.layout.addWidget(self.page)
+        self.layout.addWidget(self.page)
         self._frameLabel = QLabel()
         self.frameLabel.setAlignment(Qt.AlignCenter)
         self._time = int(round(time.time() * 1000))
-        container.layout.addWidget(self.frameLabel)
-        self.layout.addWidget(container)
-        del container
-        container = QWidget()
-        container.layout = QVBoxLayout()
-        container.setLayout(container.layout)
-        for n in range(Config.maxCamConnections):
-            button = QPushButton("%s" % n)
-            button.clicked.connect(lambda state, x=n: self.setCapture(x))
-            container.layout.addWidget(button)
-        self.layout.addWidget(container)
-        del container, button, n
-        self.setCapture(*args)
-
-    def setCapture(self, index: int):
-        if self.cap is not None:
-            self.stop()
-        self.cap = cv2.VideoCapture(index)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self._image.width())
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self._image.height())
-        self.cap.set(cv2.CAP_PROP_FPS, Config.camFrameRate)
-        if self.cap.isOpened():
-            self.start()
 
     def fullscreen(self):
         if not self.isImageFullscreen:

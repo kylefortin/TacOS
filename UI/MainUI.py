@@ -17,7 +17,6 @@ from Objects.Lights import Lights
 from Objects.OBAs import OBAs
 from Objects.Tracs import Tracs
 from Objects.MenuButton import MenuButton
-from Objects.CamViewer import CamViewer
 from Objects.I2CBus import I2CBus
 from Objects.Logger import Logger
 from UI.AddLightUI import AddLightUI
@@ -34,6 +33,7 @@ from UI.TracConfigUI import TracConfigUI
 from UI.TracControlUI import TracControlUI
 from UI.UserPrefUI import UserPrefUI
 from UI.Gyro import Gyrometer
+from UI.CamViewerUI import CamViewerUI
 
 
 class MainUI(QWidget):
@@ -115,7 +115,7 @@ class MainUI(QWidget):
         modules = {'enableOBA': (OBAControlUI, [self], 'control_oba'),
                    'enableLighting': (LightControlUI, [self], 'control_light'),
                    'enableTracControl': (TracControlUI, [self], "control_trac"),
-                   'enableCamViewer': (CamViewer, [0], "control_cam"),
+                   'enableCamViewer': (CamViewerUI, [self], "control_cam"),
                    'enableGyro': (Gyrometer, [self], "control_gyro")}
         for k, v in modules.items():
             v: tuple[type, list, str]
@@ -124,7 +124,7 @@ class MainUI(QWidget):
                 uiName = v[2]
                 break
         if cUI is None:
-            cUI = UserPrefUI(self.prefs, self)
+            cUI = UserPrefUI(self.prefs)
             uiName = 'config_prefs'
         self._currentUI = {'name': uiName, 'obj': cUI}
         del cUI, uiName
@@ -204,7 +204,7 @@ class MainUI(QWidget):
                 "light": (LightControlUI, [self]),
                 "oba": (OBAControlUI, [self]),
                 "trac": (TracControlUI, [self]),
-                "cam": (CamViewer, [0]),
+                "cam": (CamViewerUI, [self]),
                 "gyro": (Gyrometer, [self])
             },
             "config": {
@@ -233,8 +233,6 @@ class MainUI(QWidget):
             if ui_type == "gyro":
                 new_ui.startSerial()
                 new_ui.startRotation()
-        if ui_type == "cam":
-            new_ui.start()
         if ui_type in ["cam", "prefs"]:
             self.disableConfigButtons()
         else:
